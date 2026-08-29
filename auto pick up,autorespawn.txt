@@ -1,0 +1,87 @@
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local autoRespawn = true
+
+local visitedDrops = {}
+
+player.CharacterAdded:Connect(function(newCharacter)
+	character = newCharacter
+	humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+end)
+
+local function forceRemoteRespawn()
+	pcall(function()
+		local remotesFolder = ReplicatedStorage:FindFirstChild("Remotes")
+		if remotesFolder then
+			local duelsFolder = remotesFolder:FindFirstChild("Duels")
+			if duelsFolder then
+				local respawnRemote = duelsFolder:FindFirstChild("RespawnNow")
+				if respawnRemote and respawnRemote:IsA("RemoteEvent") then
+					respawnRemote:FireServer()
+				end
+			end
+		end
+	end)
+end
+
+player.CharacterAdded:Connect(function(newCharacter)
+	local humanoid = newCharacter:WaitForChild("Humanoid")
+	humanoid.Died:Connect(function()
+		if not autoRespawn then return end
+		task.spawn(function()
+			while autoRespawn do
+				local char = player.Character
+				if char and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+					break
+				end
+				forceRemoteRespawn()
+				task.wait(0.1)
+			end
+		end)
+	end)
+end)
+
+local function handleNewDrop(object)
+	if not (object:IsA("BasePart") and object.Name == "_drop") then return end
+	if visitedDrops[object] then return end
+
+	visitedDrops[object] = true
+
+	task.wait()
+
+	pcall(function()
+		if object:IsDescendantOf(Workspace) and humanoidRootPart and humanoidRootPart.Parent then
+			object.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+			object.Anchored = true
+			object.CanCollide = false
+			object.Transparency = 1
+
+			for _, child in pairs(object:GetDescendants()) do
+				if child:IsA("BasePart") or child:IsA("UnionOperation") or child:IsA("MeshPart") then
+					pcall(function()
+						child.Transparency = 1
+						child.CanCollide = false
+					end)
+				elseif child:IsA("BillboardGui") or child:IsA("SurfaceGui") or child:IsA("ParticleEmitter") or child:IsA("SelectionBox") then
+					pcall(function()
+						child.Enabled = false
+					end)
+				end
+			end
+		end
+	end)
+end
+
+for _, object in ipairs(Workspace:GetDescendants()) do
+	if object:IsA("BasePart") and object.Name == "_drop" then
+		visitedDrops[object] = true
+	end
+end
+
+Workspace.DescendantAdded:Connect(handleNewDrop)

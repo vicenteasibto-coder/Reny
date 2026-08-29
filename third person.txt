@@ -1,0 +1,23 @@
+local thirdpersontab = idk2:section({name = "Third Person"})
+
+local thirdpersonenable = false
+
+local CameraController = require(local_player:WaitForChild("PlayerScripts"):WaitForChild("Controllers"):WaitForChild("CameraController"))
+
+thirdpersontab:addToggle({
+    name = "Enabled",
+    flag = "",
+    callback = function(v)
+        thirdPersonEnabled = v
+        CameraController:SetThirdPersonOverride(v)
+    end
+})
+
+
+runservice.Heartbeat:Connect(function()
+    if thirdpersonenable then
+        if CameraController.CameraState:GetPublicState() ~= CameraController.CameraState.States.ThirdPerson then
+            CameraController.CameraState:TogglePOV()
+        end
+    end
+end)

@@ -1,0 +1,10 @@
+local ban_index = 1;
+local ban_weapons = {};
+trove:Add(task.spawn(function()
+    while wait(1) do
+        if getgenv().eteritum.auto_ban_weapon.enable and #banweapons > 0 then
+            replicated_storage.Remotes.Duels.Vote:FireServer(ban_weapons[ban_index]);
+            ban_index = ban_index % #ban_weapons + 1;
+        end;
+    end;
+end));

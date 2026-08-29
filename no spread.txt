@@ -1,0 +1,17 @@
+local old = gun.StartShooting; gun.StartShooting = function(controller, is_empty, debounce)
+    local client_fighter = controller.ClientFighter;
+    if not client_fighter.IsLocalPlayer then 
+        return old(controller, is_empty, debounce);
+    end;
+    if not is_empty and controller:Get("Ammo") <= 0 then
+        return false;
+    end;
+    local shoot_result = {old(controller, is_empty, debounce)}
+    local current_item = client_fighter.EquippedItem;
+    if current_item then 
+        if getgenv().eteritum.guns.no_spread then 
+            shoot_result[4] = true;
+        end;
+    end;
+    return unpack(shoot_result);
+end;

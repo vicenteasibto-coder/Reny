@@ -1,0 +1,513 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = game:GetService("Workspace").CurrentCamera
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+local Settings = {
+    ESP = true,
+    Tracers = true,
+    Names = true,
+    Distance = true,
+    HealthBar = true,
+    SilentAim = true, -- Joint-Rotation Silent Aim (True Silent Aim)
+    Aimlock = false,
+    AimlockKey = Enum.KeyCode.Q,
+    FOV = 150,
+    TeamCheck = false,
+    AimPart = "HitboxHead"
+}
+
+-- FOV Circle
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 1.5
+FOVCircle.Color = Color3.fromRGB(0, 255, 0)
+FOVCircle.Filled = false
+FOVCircle.Radius = Settings.FOV
+FOVCircle.Visible = true
+
+RunService.RenderStepped:Connect(function()
+    FOVCircle.Position = UserInputService:GetMouseLocation()
+    FOVCircle.Radius = Settings.FOV
+    FOVCircle.Visible = Settings.Aimlock or Settings.SilentAim
+end)
+
+-- Helper: Get closest player to cursor
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    local mouseLoc = UserInputService:GetMouseLocation()
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if Settings.TeamCheck and player.Team == LocalPlayer.Team then continue end
+            
+            local targetPart = player.Character:FindFirstChild(Settings.AimPart) or player.Character:FindFirstChild("Head")
+            if targetPart then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                if onScreen then
+                    local distance = (Vector2.new(screenPos.X, screenPos.Y) - mouseLoc).Magnitude
+                    if distance < shortestDistance and distance <= Settings.FOV then
+                        shortestDistance = distance
+                        closestPlayer = player
+                    end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
+-- ESP Rendering
+local function createESP(player)
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Color = Color3.fromRGB(0, 255, 0)
+    Box.Thickness = 1.5
+    Box.Filled = false
+
+    local Tracer = Drawing.new("Line")
+    Tracer.Visible = false
+    Tracer.Color = Color3.fromRGB(0, 255, 0)
+    Tracer.Thickness = 1
+
+    local NameText = Drawing.new("Text")
+    NameText.Visible = false
+    NameText.Color = Color3.fromRGB(255, 255, 255)
+    NameText.Size = 14
+    NameText.Center = true
+    NameText.Outline = true
+
+    local HealthBar = Drawing.new("Square")
+    HealthBar.Visible = false
+    HealthBar.Color = Color3.fromRGB(0, 255, 0)
+    HealthBar.Thickness = 1
+    HealthBar.Filled = true
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if Settings.TeamCheck and player.Team == LocalPlayer.Team then
+                Box.Visible = false
+                Tracer.Visible = false
+                NameText.Visible = false
+                HealthBar.Visible = false
+                return
+            end
+
+            local hrp = player.Character.HumanoidRootPart
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            local hrpPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+            
+            if onScreen then
+                local size = (Camera.ViewportSize.Y / 2) / (hrpPos.Z) * 2
+                local boxWidth = size
+                local boxHeight = size * 1.5
+                local boxX = hrpPos.X - boxWidth / 2
+                local boxY = hrpPos.Y - boxHeight / 2
+
+                if Settings.ESP then
+                    Box.Size = Vector2.new(boxWidth, boxHeight)
+                    Box.Position = Vector2.new(boxX, boxY)
+                    Box.Visible = true
+                else
+                    Box.Visible = false
+                end
+
+                if Settings.Tracers then
+                    Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                    Tracer.To = Vector2.new(hrpPos.X, hrpPos.Y)
+                    Tracer.Visible = true
+                else
+                    Tracer.Visible = false
+                end
+
+                if Settings.Names or Settings.Distance then
+                    local text = ""
+                    if Settings.Names then text = text .. player.Name end
+                    if Settings.Distance then text = text .. " [" .. math.round(hrpPos.Z) .. "m]" end
+                    NameText.Text = text
+                    NameText.Position = Vector2.new(hrpPos.X, boxY - 18)
+                    NameText.Visible = true
+                else
+                    NameText.Visible = false
+                end
+
+                if Settings.HealthBar and humanoid then
+                    local healthPct = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
+                    HealthBar.Size = Vector2.new(3, boxHeight * healthPct)
+                    HealthBar.Position = Vector2.new(boxX - 7, boxY + (boxHeight * (1 - healthPct)))
+                    HealthBar.Color = Color3.fromHSV(healthPct * 0.3, 1, 1)
+                    HealthBar.Visible = true
+                else
+                    HealthBar.Visible = false
+                end
+            else
+                Box.Visible = false
+                Tracer.Visible = false
+                NameText.Visible = false
+                HealthBar.Visible = false
+            end
+        else
+            Box.Visible = false
+            Tracer.Visible = false
+            NameText.Visible = false
+            HealthBar.Visible = false
+            if not player.Parent then
+                Box:Remove()
+                Tracer:Remove()
+                NameText:Remove()
+                HealthBar:Remove()
+                connection:Disconnect()
+            end
+        end
+    end)
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        createESP(player)
+    end
+end
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        createESP(player)
+    end
+end)
+
+-- Click Detection
+local isShooting = false
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isShooting = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, processed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isShooting = false
+    end
+end)
+
+-- Key Aimlock Loop (moves mouse cursor only when holding key)
+local lockTarget = nil
+RunService.RenderStepped:Connect(function()
+    if Settings.Aimlock and UserInputService:IsKeyDown(Settings.AimlockKey) then
+        if not lockTarget or not lockTarget.Character or not lockTarget.Character:FindFirstChild("HumanoidRootPart") then
+            lockTarget = getClosestPlayer()
+        end
+        
+        if lockTarget and lockTarget.Character then
+            local targetPart = lockTarget.Character:FindFirstChild(Settings.AimPart) or lockTarget.Character:FindFirstChild("Head")
+            if targetPart then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                if onScreen then
+                    local mouseLoc = UserInputService:GetMouseLocation()
+                    local xDiff = screenPos.X - mouseLoc.X
+                    local yDiff = screenPos.Y - mouseLoc.Y
+                    mousemoverel(xDiff, yDiff)
+                end
+            end
+        end
+    else
+        lockTarget = nil
+    end
+end)
+
+-- Joint-Based Silent Aim
+RunService.Stepped:Connect(function()
+    if Settings.SilentAim and isShooting then
+        local target = getClosestPlayer()
+        if target and target.Character and LocalPlayer.Character then
+            local targetPart = target.Character:FindFirstChild(Settings.AimPart) or target.Character:FindFirstChild("Head")
+            local upperTorso = LocalPlayer.Character:FindFirstChild("UpperTorso")
+            local waist = upperTorso and upperTorso:FindFirstChild("Waist")
+            
+            if targetPart and waist then
+                -- Calculate relative angle pointing from upper torso to target hitbox
+                local objectSpace = upperTorso.CFrame:PointToObjectSpace(targetPart.Position)
+                local yaw = math.atan2(-objectSpace.X, -objectSpace.Z)
+                local pitch = math.atan2(objectSpace.Y, -objectSpace.Z)
+                
+                -- Force waist joint to rotate directly to the target
+                waist.Transform = CFrame.Angles(pitch, yaw, 0)
+            end
+        end
+    end
+end)
+
+-- ImGui Menu Setup (Toggled with INSERT or Floating Button)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ImGuiMenu"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local success, parent = pcall(function() return CoreGui end)
+ScreenGui.Parent = success and parent or LocalPlayer:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 600, 0, 310)
+MainFrame.Position = UDim2.new(0.5, -300, 0.5, -155)
+MainFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 30)
+TopBar.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -10, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Nyx Rivals v3"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 14
+Title.Font = Enum.Font.SourceSansBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, -20, 1, -50)
+ContentFrame.Position = UDim2.new(0, 10, 0, 40)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
+
+local UIGrid = Instance.new("UIGridLayout")
+UIGrid.CellSize = UDim2.new(0.333, -7, 1, 0)
+UIGrid.CellPadding = UDim2.new(0, 10, 0, 0)
+UIGrid.Parent = ContentFrame
+
+local AimbotFrame = Instance.new("Frame")
+AimbotFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+AimbotFrame.BorderSizePixel = 0
+AimbotFrame.Parent = ContentFrame
+
+local AimbotTitle = Instance.new("TextLabel")
+AimbotTitle.Size = UDim2.new(1, 0, 0, 25)
+AimbotTitle.BackgroundTransparency = 1
+AimbotTitle.Text = "  AIMBOT / SILENT"
+AimbotTitle.TextColor3 = Color3.fromRGB(0, 255, 0)
+AimbotTitle.TextSize = 13
+AimbotTitle.Font = Enum.Font.SourceSansBold
+AimbotTitle.TextXAlignment = Enum.TextXAlignment.Left
+AimbotTitle.Parent = AimbotFrame
+
+local AimList = Instance.new("UIListLayout")
+AimList.Padding = UDim.new(0, 5)
+AimList.Parent = AimbotFrame
+
+local ESPFrame = Instance.new("Frame")
+ESPFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+ESPFrame.BorderSizePixel = 0
+ESPFrame.Parent = ContentFrame
+
+local ESPTitle = Instance.new("TextLabel")
+ESPTitle.Size = UDim2.new(1, 0, 0, 25)
+ESPTitle.BackgroundTransparency = 1
+ESPTitle.Text = "  VISUALS (ESP)"
+ESPTitle.TextColor3 = Color3.fromRGB(0, 255, 0)
+ESPTitle.TextSize = 13
+ESPTitle.Font = Enum.Font.SourceSansBold
+ESPTitle.TextXAlignment = Enum.TextXAlignment.Left
+ESPTitle.Parent = ESPFrame
+
+local ESPList = Instance.new("UIListLayout")
+ESPList.Padding = UDim.new(0, 5)
+ESPList.Parent = ESPFrame
+
+local FeatureFrame = Instance.new("Frame")
+FeatureFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+FeatureFrame.BorderSizePixel = 0
+FeatureFrame.Parent = ContentFrame
+
+local FeatureTitle = Instance.new("TextLabel")
+FeatureTitle.Size = UDim2.new(1, 0, 0, 25)
+FeatureTitle.BackgroundTransparency = 1
+FeatureTitle.Text = "  FEATURE STATUS"
+FeatureTitle.TextColor3 = Color3.fromRGB(0, 255, 0)
+FeatureTitle.TextSize = 13
+FeatureTitle.Font = Enum.Font.SourceSansBold
+FeatureTitle.TextXAlignment = Enum.TextXAlignment.Left
+FeatureTitle.Parent = FeatureFrame
+
+local FeatureList = Instance.new("UIListLayout")
+FeatureList.Padding = UDim.new(0, 5)
+FeatureList.Parent = FeatureFrame
+
+local function createStatusLabel(text, configKey, parent)
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -20, 0, 25)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Label.TextSize = 12
+    Label.Font = Enum.Font.SourceSans
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = parent
+
+    RunService.RenderStepped:Connect(function()
+        local active = Settings[configKey]
+        if active then
+            Label.Text = "  [ON]  " .. text
+            Label.TextColor3 = Color3.fromRGB(0, 255, 0)
+        else
+            Label.Text = "  [OFF] " .. text
+            Label.TextColor3 = Color3.fromRGB(150, 150, 150)
+        end
+    end)
+end
+
+local function createCheckbox(text, parent, configKey)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 30)
+    Container.BackgroundTransparency = 1
+    Container.Parent = parent
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 16, 0, 16)
+    Button.Position = UDim2.new(0, 10, 0.5, -8)
+    Button.BackgroundColor3 = Settings[configKey] and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(48, 48, 48)
+    Button.BorderSizePixel = 0
+    Button.Text = ""
+    Button.Parent = Container
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -35, 1, 0)
+    Label.Position = UDim2.new(0, 35, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Label.TextSize = 13
+    Label.Font = Enum.Font.SourceSans
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Container
+
+    Button.MouseButton1Click:Connect(function()
+        Settings[configKey] = not Settings[configKey]
+        Button.BackgroundColor3 = Settings[configKey] and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(48, 48, 48)
+    end)
+end
+
+local function createSlider(text, parent, min, max, configKey)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 45)
+    Container.BackgroundTransparency = 1
+    Container.Parent = parent
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -20, 0, 20)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text .. ": " .. tostring(Settings[configKey])
+    Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Label.TextSize = 12
+    Label.Font = Enum.Font.SourceSans
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Container
+
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Size = UDim2.new(1, -20, 0, 6)
+    SliderFrame.Position = UDim2.new(0, 10, 0, 25)
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(48, 48, 48)
+    SliderFrame.BorderSizePixel = 0
+    SliderFrame.Parent = Container
+
+    local Fill = Instance.new("Frame")
+    Fill.Size = UDim2.new((Settings[configKey] - min) / (max - min), 0, 1, 0)
+    Fill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    Fill.BorderSizePixel = 0
+    Fill.Parent = SliderFrame
+
+    local dragging = false
+    local function updateSlider(input)
+        local pos = math.clamp((input.Position.X - SliderFrame.AbsolutePosition.X) / SliderFrame.AbsoluteSize.X, 0, 1)
+        local value = math.round(min + (pos * (max - min)))
+        Settings[configKey] = value
+        Fill.Size = UDim2.new(pos, 0, 1, 0)
+        Label.Text = text .. ": " .. tostring(value)
+    end
+
+    SliderFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            updateSlider(input)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            updateSlider(input)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- Populate UI Tab 1 (Aimbot)
+createCheckbox("Joint Silent Aim", AimbotFrame, "SilentAim")
+createCheckbox("Key Aimlock (Q)", AimbotFrame, "Aimlock")
+createSlider("Aimbot FOV", AimbotFrame, 50, 400, "FOV")
+
+-- Populate UI Tab 2 (ESP)
+createCheckbox("Box ESP", ESPFrame, "ESP")
+createCheckbox("Tracers", ESPFrame, "Tracers")
+createCheckbox("Name ESP", ESPFrame, "Names")
+createCheckbox("Distance ESP", ESPFrame, "Distance")
+createCheckbox("Healthbar", ESPFrame, "HealthBar")
+
+-- Populate UI Tab 3 (Feature Status)
+createStatusLabel("Joint Silent Aim", "SilentAim", FeatureFrame)
+createStatusLabel("Key Aimlock", "Aimlock", FeatureFrame)
+createStatusLabel("Box ESP", "ESP", FeatureFrame)
+createStatusLabel("Tracers", "Tracers", FeatureFrame)
+createStatusLabel("Name ESP", "Names", FeatureFrame)
+createStatusLabel("Distance ESP", "Distance", FeatureFrame)
+createStatusLabel("Healthbar ESP", "HealthBar", FeatureFrame)
+
+-- Floating Screen Toggle Button (Top-Left of Screen)
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Text = "NYX"
+ToggleButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+ToggleButton.TextSize = 13
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0.5, 0)
+UICorner.Parent = ToggleButton
+
+local UIBorder = Instance.new("UIStroke")
+UIBorder.Thickness = 1.5
+UIBorder.Color = Color3.fromRGB(0, 255, 0)
+UIBorder.Parent = ToggleButton
+
+ToggleButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- Keep keyboard keybind support (INSERT)
+UserInputService.InputBegan:Connect(function(input, processed)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
+
+print("[Rivals] Joint Silent Aim & UI Loaded.")

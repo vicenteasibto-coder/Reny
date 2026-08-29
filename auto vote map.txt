@@ -1,0 +1,25 @@
+local autovote = false
+local selectedmap = "Arena"
+sec_vote:addToggle({
+    name = "Enabled", 
+    flag = "AutoVoteEnabled", 
+    callback = function(v)
+        autovote = v
+    end
+})
+
+sec_vote:addDropdown({
+    name = "Map", 
+    flag = "AutoVoteMap", 
+    items = {"Arena", "Big Graveyard", "Docks", "Splash", "Bridge", "Crossroads", "Big Crossroads", "Big Backrooms", "Battleground", "Big Arena", "Construction", "Playground", "Onyx", "Graveyard", "Big Splash", "Big Onyx", "Backrooms", "Station", "Dimension"},
+    default = "Arena",
+    callback = function(v)
+        selectedmap = v
+    end
+})
+
+runservice.Heartbeat:Connect(function()
+    if autovote then
+        rs.Remotes.Duels.Vote:FireServer(selectedmap)
+    end
+end)

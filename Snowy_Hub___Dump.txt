@@ -1,0 +1,1539 @@
+-- [[ ts generated @ dsc.gg/6vms ]]
+
+local source="-- Snowy Hub single-stage FlowAuth loader
+-- Generated route tables are injected by LuxScript.py.
+
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+local LOADERS_BY_PLACE = {
+    [142823291] = { name = "MM2", url = "https://flowauth.net/v1/loaders/1284f976d74f93742a020980dcf30a3d.lua" },
+    [155615604] = { name = "Prison Life", url = "https://flowauth.net/v1/loaders/58f3b88f1eea47469254f99daea49f0c.lua" },
+    [185655149] = { name = "Welcome to Bloxburg", url = "https://flowauth.net/v1/loaders/939d801274463eeed485aa9b5d4e3a4b.lua" },
+    [286090429] = { name = "Arsenal", url = "https://flowauth.net/v1/loaders/ac819bd7abdb54e1bebd8a56e110bf05.lua" },
+    [606849621] = { name = "Jailbreak", url = "https://flowauth.net/v1/loaders/1442a85fca92ad5b0157254469b5ba2b.lua" },
+    [621129760] = { name = "KAT", url = "https://flowauth.net/v1/loaders/8676b598ac456d00f4414f07ab1d8fde.lua" },
+    [893973440] = { name = "Flee the Facility", url = "https://flowauth.net/v1/loaders/af2c2bd2b428446db06240cb60a1601f.lua" },
+    [920587237] = { name = "Adopt Me", url = "https://flowauth.net/v1/loaders/39fa2dffc0a7b60187c98fae28663ad9.lua" },
+    [1537690962] = { name = "Bee Swarm", url = "https://flowauth.net/v1/loaders/47620b8302d0709b15549efe91b5939a.lua" },
+    [1962086868] = { name = "Tower of hell", url = "https://flowauth.net/v1/loaders/8ddb7211a557a2352676c3d63bcc908e.lua" },
+    [2753915549] = { name = "Blox Fruits", url = "https://flowauth.net/v1/loaders/4c3812be08ffc82fb95c890293455090.lua" },
+    [2788229376] = { name = "Da Hood", url = "https://flowauth.net/v1/loaders/b760f931bfe638ac0ffd7c1653d6f2e3.lua" },
+    [3351674303] = { name = "Driving Empire", url = "https://flowauth.net/v1/loaders/f1c2727550f69fdd06bf5750c85f4f06.lua" },
+    [4924922222] = { name = "Brookhaven", url = "https://flowauth.net/v1/loaders/6d226f26e32a48643a1a51dadc16c97c.lua" },
+    [6872265039] = { name = "BedWars", url = "https://flowauth.net/v1/loaders/e7d10d6d9e8843b617ef435ca99bdde7.lua" },
+    [7305309231] = { name = "Taxi Boss", url = "https://flowauth.net/v1/loaders/9ef84f597617dbf0f38431595817e26f.lua" },
+    [8737899170] = { name = "Pet Sim 99", url = "https://flowauth.net/v1/loaders/c2ab5abb3f1139fab96cc0a648cd05ee.lua" },
+    [9391468976] = { name = "Jujutsu Shenanigans", url = "https://flowauth.net/v1/loaders/8771ec959e4c42728262153cf31f4f4a.lua" },
+    [9872472334] = { name = "Evade", url = "https://flowauth.net/v1/loaders/92e5ad94cecd5d7d5b2bce2d9dbdb8f7.lua" },
+    [10449761463] = { name = "Strongest Battlegrounds", url = "https://flowauth.net/v1/loaders/1b0433dd4b5714f323b42ae9ee478eab.lua" },
+    [11815767793] = { name = "Ultimate Battlegrounds", url = "https://flowauth.net/v1/loaders/2b6f324ee1b0add0794da32ae071060c.lua" },
+    [13076380114] = { name = "Heroes Battlegrounds", url = "https://flowauth.net/v1/loaders/66112bf3e0ccbdef51ce9ff7bc2459fb.lua" },
+    [13772394625] = { name = "Blade Ball", url = "https://flowauth.net/v1/loaders/9897c02bdf08e908990f0150a94a81f3.lua" },
+    [15002061926] = { name = "Death Ball", url = "https://flowauth.net/v1/loaders/7b5ad16a51bb20bccb2c7cb968575b8b.lua" },
+    [15101393044] = { name = "Dress To Impress", url = "https://flowauth.net/v1/loaders/bf4696346359a0b2ea2726cc1cd178f6.lua" },
+    [15269951959] = { name = "Legend Battlegrounds", url = "https://flowauth.net/v1/loaders/59fd109ad7ac235cc96311ba51585e65.lua" },
+    [16116270224] = { name = "Dandy's World", url = "https://flowauth.net/v1/loaders/cbf09d8e0bc48f6cfbfe5edd702a1bbb.lua" },
+    [17625359962] = { name = "Rivals", url = "https://flowauth.net/v1/loaders/7354e54de8e430e4bd0fea56d3ff4e4b.lua" },
+    [18199615050] = { name = "Demonology", url = "https://flowauth.net/v1/loaders/aaa2f960a14b82caaed038ef84c97860.lua" },
+    [77747658251236] = { name = "Sailor Piece", url = "https://flowauth.net/v1/loaders/29f157fbfbc9e9cd5727deb45135f5b1.lua" },
+    [79268393072444] = { name = "Sell Lemons", url = "https://flowauth.net/v1/loaders/b63d6ebd11d922d55cd57917417b9a48.lua" },
+    [79546208627805] = { name = "99 Nights", url = "https://flowauth.net/v1/loaders/db496150f726594675e694c45e9611d9.lua" },
+    [82806856224736] = { name = "Grab Ores!", url = "https://flowauth.net/v1/loaders/1967e4e9e6da503e0f8676e26f2b6a11.lua" },
+    [83038462357724] = { name = "Dig & Clean", url = "https://flowauth.net/v1/loaders/f44a7c040c226b7212df46930b1a7597.lua" },
+    [84515722934860] = { name = "Anime Expeditions", url = "https://flowauth.net/v1/loaders/9e885a58aaa87d6d9b47e508f8a44fda.lua" },
+    [85395484560711] = { name = "Volleyball Legends", url = "https://flowauth.net/v1/loaders/7d03db1bb5ab5f87dc18149bc79ce52f.lua" },
+    [89469502395769] = { name = "Kick a Lucky Block", url = "https://flowauth.net/v1/loaders/9113d2bc8d2bec276f9346af2eec4df6.lua" },
+    [90568084448279] = { name = "One Tap", url = "https://flowauth.net/v1/loaders/610da5400906453cb8a38498e0804e6d.lua" },
+    [92637789841354] = { name = "Clean all the leaves!", url = "https://flowauth.net/v1/loaders/fded6af43e55026a4d5f8441d0f0d2f8.lua" },
+    [93978595733734] = { name = "Violence District", url = "https://flowauth.net/v1/loaders/228245a7a4ce7fa815d9cadbdfdf7d4c.lua" },
+    [94640181989498] = { name = "Grow a Chicken Fighter", url = "https://flowauth.net/v1/loaders/f479f0a5b6da340d4b7952325c457351.lua" },
+    [95082159892680] = { name = "Speed Keyboard Escape", url = "https://flowauth.net/v1/loaders/5b0eaca649815de80f9d4531cf0732ed.lua" },
+    [97598239454123] = { name = "Grow a Garden 2", url = "https://flowauth.net/v1/loaders/b4db1831f1daeb0d00f2b632e90c8c84.lua" },
+    [100068273119174] = { name = "Clean all the leaves!", url = "https://flowauth.net/v1/loaders/fded6af43e55026a4d5f8441d0f0d2f8.lua" },
+    [107778070777162] = { name = "Steal an Egg", url = "https://flowauth.net/v1/loaders/6792c0b96c889e4d9d88a77120371fa1.lua" },
+    [109397169461300] = { name = "Sniper Duels", url = "https://flowauth.net/v1/loaders/95931032f9e260d8edbd197e99e9e75e.lua" },
+    [109983668079237] = { name = "SAB", url = "https://flowauth.net/v1/loaders/c0e32e80327bf489e68ce85e214aabb7.lua" },
+    [114234929420007] = { name = "BloxStrike", url = "https://flowauth.net/v1/loaders/9346f94649261116235cd37c98961c1a.lua" },
+    [114640202062357] = { name = "Swing Obby", url = "https://flowauth.net/v1/loaders/f77a952b826a58264797d07fa907618e.lua" },
+    [114697347887839] = { name = "Speed Monkey Escape", url = "https://flowauth.net/v1/loaders/5fb1ce42b4ff9fc189f7b49b2532dd38.lua" },
+    [121192350097093] = { name = "+1 Jump Brainrot", url = "https://flowauth.net/v1/loaders/91c34ef4cdfea8c1718537b58ac45c38.lua" },
+    [121864768012064] = { name = "Fish It", url = "https://flowauth.net/v1/loaders/c56b12fceac3d4fb131e472ac22ae389.lua" },
+    [125927821145949] = { name = "Mine  A Mountain", url = "https://flowauth.net/v1/loaders/4b355353238a9ce8c0c399c21bd5a876.lua" },
+    [127794225497302] = { name = "Abyss", url = "https://flowauth.net/v1/loaders/bff030cf88d19e03e0ebee9e3a8e3e26.lua" },
+    [128736949265057] = { name = "Gakuran", url = "https://flowauth.net/v1/loaders/da0be740960229c973901fff7813da38.lua" },
+    [135648408848758] = { name = "One Scope", url = "https://flowauth.net/v1/loaders/01b50ec75bb1a0aa6893005e72b53041.lua" },
+    [135856908115931] = { name = "Murderers VS Sheriffs", url = "https://flowauth.net/v1/loaders/0ba8b3eb41317869584846b2eb3e2843.lua" },
+    [138381251771774] = { name = "Drain the Lake", url = "https://flowauth.net/v1/loaders/efa605e2433ce4cf44a3e829c0b963be.lua" },
+    [139299356663913] = { name = "Jump for Brainrots", url = "https://flowauth.net/v1/loaders/34692ef767507cdd54c63830e858054b.lua" },
+    [139566161526375] = { name = "Bridge Duel", url = "https://flowauth.net/v1/loaders/bf32a63abbec5a85ad5aae872618de4a.lua" },
+}
+
+local LOADERS_BY_GAME = {
+    [66654135] = { name = "MM2", url = "https://flowauth.net/v1/loaders/1284f976d74f93742a020980dcf30a3d.lua" },
+    [73885730] = { name = "Prison Life", url = "https://flowauth.net/v1/loaders/58f3b88f1eea47469254f99daea49f0c.lua" },
+    [88070565] = { name = "Welcome to Bloxburg", url = "https://flowauth.net/v1/loaders/939d801274463eeed485aa9b5d4e3a4b.lua" },
+    [111958650] = { name = "Arsenal", url = "https://flowauth.net/v1/loaders/ac819bd7abdb54e1bebd8a56e110bf05.lua" },
+    [245662005] = { name = "Jailbreak", url = "https://flowauth.net/v1/loaders/1442a85fca92ad5b0157254469b5ba2b.lua" },
+    [254394801] = { name = "KAT", url = "https://flowauth.net/v1/loaders/8676b598ac456d00f4414f07ab1d8fde.lua" },
+    [372226183] = { name = "Flee the Facility", url = "https://flowauth.net/v1/loaders/af2c2bd2b428446db06240cb60a1601f.lua" },
+    [383310974] = { name = "Adopt Me", url = "https://flowauth.net/v1/loaders/39fa2dffc0a7b60187c98fae28663ad9.lua" },
+    [601130232] = { name = "Bee Swarm", url = "https://flowauth.net/v1/loaders/47620b8302d0709b15549efe91b5939a.lua" },
+    [703124385] = { name = "Tower of hell", url = "https://flowauth.net/v1/loaders/8ddb7211a557a2352676c3d63bcc908e.lua" },
+    [994732206] = { name = "Blox Fruits", url = "https://flowauth.net/v1/loaders/4c3812be08ffc82fb95c890293455090.lua" },
+    [1008451066] = { name = "Da Hood", url = "https://flowauth.net/v1/loaders/b760f931bfe638ac0ffd7c1653d6f2e3.lua" },
+    [1202096104] = { name = "Driving Empire", url = "https://flowauth.net/v1/loaders/f1c2727550f69fdd06bf5750c85f4f06.lua" },
+    [1686885941] = { name = "Brookhaven", url = "https://flowauth.net/v1/loaders/6d226f26e32a48643a1a51dadc16c97c.lua" },
+    [2619619496] = { name = "BedWars", url = "https://flowauth.net/v1/loaders/e7d10d6d9e8843b617ef435ca99bdde7.lua" },
+    [2851381018] = { name = "Taxi Boss", url = "https://flowauth.net/v1/loaders/9ef84f597617dbf0f38431595817e26f.lua" },
+    [3317771874] = { name = "Pet Sim 99", url = "https://flowauth.net/v1/loaders/c2ab5abb3f1139fab96cc0a648cd05ee.lua" },
+    [3508322461] = { name = "Jujutsu Shenanigans", url = "https://flowauth.net/v1/loaders/8771ec959e4c42728262153cf31f4f4a.lua" },
+    [3647333358] = { name = "Evade", url = "https://flowauth.net/v1/loaders/92e5ad94cecd5d7d5b2bce2d9dbdb8f7.lua" },
+    [3808081382] = { name = "Strongest Battlegrounds", url = "https://flowauth.net/v1/loaders/1b0433dd4b5714f323b42ae9ee478eab.lua" },
+    [4181957649] = { name = "Ultimate Battlegrounds", url = "https://flowauth.net/v1/loaders/2b6f324ee1b0add0794da32ae071060c.lua" },
+    [4568630521] = { name = "Heroes Battlegrounds", url = "https://flowauth.net/v1/loaders/66112bf3e0ccbdef51ce9ff7bc2459fb.lua" },
+    [4777817887] = { name = "Blade Ball", url = "https://flowauth.net/v1/loaders/9897c02bdf08e908990f0150a94a81f3.lua" },
+    [5166944221] = { name = "Death Ball", url = "https://flowauth.net/v1/loaders/7b5ad16a51bb20bccb2c7cb968575b8b.lua" },
+    [5203828273] = { name = "Dress To Impress", url = "https://flowauth.net/v1/loaders/bf4696346359a0b2ea2726cc1cd178f6.lua" },
+    [5265857965] = { name = "Legend Battlegrounds", url = "https://flowauth.net/v1/loaders/59fd109ad7ac235cc96311ba51585e65.lua" },
+    [5569032992] = { name = "Dandy's World", url = "https://flowauth.net/v1/loaders/cbf09d8e0bc48f6cfbfe5edd702a1bbb.lua" },
+    [6035872082] = { name = "Rivals", url = "https://flowauth.net/v1/loaders/7354e54de8e430e4bd0fea56d3ff4e4b.lua" },
+    [6170143659] = { name = "Demonology", url = "https://flowauth.net/v1/loaders/aaa2f960a14b82caaed038ef84c97860.lua" },
+    [6701277882] = { name = "Fish It", url = "https://flowauth.net/v1/loaders/c56b12fceac3d4fb131e472ac22ae389.lua" },
+    [6739698191] = { name = "Violence District", url = "https://flowauth.net/v1/loaders/228245a7a4ce7fa815d9cadbdfdf7d4c.lua" },
+    [6931042565] = { name = "Volleyball Legends", url = "https://flowauth.net/v1/loaders/7d03db1bb5ab5f87dc18149bc79ce52f.lua" },
+    [7219654364] = { name = "Murderers VS Sheriffs", url = "https://flowauth.net/v1/loaders/0ba8b3eb41317869584846b2eb3e2843.lua" },
+    [7264587281] = { name = "Sniper Duels", url = "https://flowauth.net/v1/loaders/95931032f9e260d8edbd197e99e9e75e.lua" },
+    [7326934954] = { name = "99 Nights", url = "https://flowauth.net/v1/loaders/db496150f726594675e694c45e9611d9.lua" },
+    [7395930870] = { name = "Sell Lemons", url = "https://flowauth.net/v1/loaders/b63d6ebd11d922d55cd57917417b9a48.lua" },
+    [7613921865] = { name = "Anime Expeditions", url = "https://flowauth.net/v1/loaders/9e885a58aaa87d6d9b47e508f8a44fda.lua" },
+    [7633926880] = { name = "BloxStrike", url = "https://flowauth.net/v1/loaders/9346f94649261116235cd37c98961c1a.lua" },
+    [7709344486] = { name = "SAB", url = "https://flowauth.net/v1/loaders/c0e32e80327bf489e68ce85e214aabb7.lua" },
+    [8144728961] = { name = "Abyss", url = "https://flowauth.net/v1/loaders/bff030cf88d19e03e0ebee9e3a8e3e26.lua" },
+    [9137416017] = { name = "Bridge Duel", url = "https://flowauth.net/v1/loaders/bf32a63abbec5a85ad5aae872618de4a.lua" },
+    [9186719164] = { name = "Sailor Piece", url = "https://flowauth.net/v1/loaders/29f157fbfbc9e9cd5727deb45135f5b1.lua" },
+    [9199655655] = { name = "Gakuran", url = "https://flowauth.net/v1/loaders/da0be740960229c973901fff7813da38.lua" },
+    [9294074907] = { name = "One Tap", url = "https://flowauth.net/v1/loaders/610da5400906453cb8a38498e0804e6d.lua" },
+    [9570888371] = { name = "Jump for Brainrots", url = "https://flowauth.net/v1/loaders/34692ef767507cdd54c63830e858054b.lua" },
+    [9584852943] = { name = "Speed Keyboard Escape", url = "https://flowauth.net/v1/loaders/5b0eaca649815de80f9d4531cf0732ed.lua" },
+    [9670086989] = { name = "One Scope", url = "https://flowauth.net/v1/loaders/01b50ec75bb1a0aa6893005e72b53041.lua" },
+    [9753814298] = { name = "Swing Obby", url = "https://flowauth.net/v1/loaders/f77a952b826a58264797d07fa907618e.lua" },
+    [9911844243] = { name = "+1 Jump Brainrot", url = "https://flowauth.net/v1/loaders/91c34ef4cdfea8c1718537b58ac45c38.lua" },
+    [9949843097] = { name = "Grab Ores!", url = "https://flowauth.net/v1/loaders/1967e4e9e6da503e0f8676e26f2b6a11.lua" },
+    [10004244222] = { name = "Kick a Lucky Block", url = "https://flowauth.net/v1/loaders/9113d2bc8d2bec276f9346af2eec4df6.lua" },
+    [10144280947] = { name = "Speed Monkey Escape", url = "https://flowauth.net/v1/loaders/5fb1ce42b4ff9fc189f7b49b2532dd38.lua" },
+    [10187294555] = { name = "Mine  A Mountain", url = "https://flowauth.net/v1/loaders/4b355353238a9ce8c0c399c21bd5a876.lua" },
+    [10200395747] = { name = "Grow a Garden 2", url = "https://flowauth.net/v1/loaders/b4db1831f1daeb0d00f2b632e90c8c84.lua" },
+    [10267363348] = { name = "Drain the Lake", url = "https://flowauth.net/v1/loaders/efa605e2433ce4cf44a3e829c0b963be.lua" },
+    [10338952197] = { name = "Grow a Chicken Fighter", url = "https://flowauth.net/v1/loaders/f479f0a5b6da340d4b7952325c457351.lua" },
+    [10475794799] = { name = "Dig & Clean", url = "https://flowauth.net/v1/loaders/f44a7c040c226b7212df46930b1a7597.lua" },
+    [10539411000] = { name = "Clean all the leaves!", url = "https://flowauth.net/v1/loaders/fded6af43e55026a4d5f8441d0f0d2f8.lua" },
+    [10563114921] = { name = "Steal an Egg", url = "https://flowauth.net/v1/loaders/6792c0b96c889e4d9d88a77120371fa1.lua" },
+}
+
+local DISCORD_URL = "https://discord.gg/getsnowy"
+local PRICING_URL = "https://getsnowy.xyz/pricing"
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Stats = game:GetService("Stats")
+local player = Players.LocalPlayer
+
+local COLORS = {
+    backdrop = Color3.fromRGB(2, 6, 12),
+    shell = Color3.fromRGB(6, 11, 20),
+    glass = Color3.fromRGB(13, 23, 39),
+    glassDeep = Color3.fromRGB(8, 16, 29),
+    glassRaised = Color3.fromRGB(20, 33, 54),
+    userPanel = Color3.fromRGB(7, 25, 34),
+    surface = Color3.fromRGB(16, 27, 45),
+    surfaceRaised = Color3.fromRGB(23, 36, 59),
+    surfaceHover = Color3.fromRGB(31, 48, 75),
+    surfacePressed = Color3.fromRGB(14, 24, 42),
+    input = Color3.fromRGB(7, 15, 28),
+    inputFocus = Color3.fromRGB(11, 24, 41),
+    divider = Color3.fromRGB(87, 119, 154),
+    primary = Color3.fromRGB(26, 164, 235),
+    primaryHover = Color3.fromRGB(49, 183, 246),
+    primaryPressed = Color3.fromRGB(17, 132, 199),
+    secondary = Color3.fromRGB(27, 45, 72),
+    secondaryHover = Color3.fromRGB(38, 61, 95),
+    secondaryPressed = Color3.fromRGB(19, 34, 57),
+    text = Color3.fromRGB(239, 245, 255),
+    textMuted = Color3.fromRGB(162, 181, 209),
+    textFaint = Color3.fromRGB(108, 132, 163),
+    cyan = Color3.fromRGB(67, 207, 255),
+    success = Color3.fromRGB(47, 224, 151),
+    warning = Color3.fromRGB(255, 190, 91),
+    danger = Color3.fromRGB(255, 97, 120),
+    premium = Color3.fromRGB(246, 192, 79),
+    premiumSurface = Color3.fromRGB(25, 22, 36),
+    premiumAction = Color3.fromRGB(126, 87, 232),
+    premiumHover = Color3.fromRGB(150, 111, 247),
+    premiumPressed = Color3.fromRGB(99, 67, 193),
+    disabled = Color3.fromRGB(35, 45, 62),
+}
+
+local MOTION = {
+    quick = 0.12,
+    normal = 0.22,
+    slow = 0.34,
+}
+
+-- The atlas entries are reused from Snowy's embedded Lucide export. Direct
+-- entries fill the few semantic gaps without pulling in a remote UI library.
+local LUCIDE = {
+    user = {
+        image = "rbxassetid://16898613869",
+        size = Vector2.new(48, 48),
+        offset = Vector2.new(661, 869),
+    },
+    settings = {
+        image = "rbxassetid://16898613777",
+        size = Vector2.new(48, 48),
+        offset = Vector2.new(771, 257),
+    },
+    shield = {
+        image = "rbxassetid://16898613777",
+        size = Vector2.new(48, 48),
+        offset = Vector2.new(869, 0),
+    },
+    globe = {
+        image = "rbxassetid://16898613509",
+        size = Vector2.new(48, 48),
+        offset = Vector2.new(771, 563),
+    },
+    save = {
+        image = "rbxassetid://16898613699",
+        size = Vector2.new(48, 48),
+        offset = Vector2.new(918, 453),
+    },
+    minus = { image = "rbxassetid://7734000129" },
+    x = { image = "rbxassetid://7743878857" },
+    key = { image = "rbxassetid://7733965118" },
+    ["shield-check"] = { image = "rbxassetid://7734056411" },
+    ["message-circle"] = { image = "rbxassetid://7733993311" },
+    copy = { image = "rbxassetid://7733764083" },
+    monitor = { image = "rbxassetid://7734002839" },
+    smartphone = { image = "rbxassetid://7734058979" },
+    gamepad = { image = "rbxassetid://7733799901" },
+    clock = { image = "rbxassetid://7733734848" },
+    wifi = { image = "rbxassetid://7743878148" },
+    ["external-link"] = { image = "rbxassetid://7743866903" },
+    ["alert-circle"] = { image = "rbxassetid://7733658271" },
+    ["check-circle"] = { image = "rbxassetid://7733919427" },
+    info = { image = "rbxassetid://7733964719" },
+    server = { image = "rbxassetid://7734053426" },
+}
+
+local DESKTOP_WIDTH = 930
+local COMPACT_WIDTH = 644
+local SHELL_HEIGHT = 620
+local SNOW_ASSET_ID = 68072539
+local SNOW_TEXTURE = "rbxthumb://type=Asset&id=68072539&w=150&h=150"
+local DESKTOP_SNOWFLAKES = 18
+local COMPACT_SNOWFLAKES = 10
+local activeTweens = setmetatable({}, { __mode = "k" })
+
+local function resolveLoader()
+    local placeId = tonumber(game.PlaceId) or 0
+    local gameId = tonumber(game.GameId) or 0
+    return LOADERS_BY_PLACE[placeId] or LOADERS_BY_GAME[gameId]
+end
+
+local function normalizeKey(value)
+    local key = tostring(value or "")
+    key = key:gsub("^%s+", ""):gsub("%s+$", "")
+    local first = key:sub(1, 1)
+    local last = key:sub(-1)
+    if #key >= 2 and ((first == "\"" and last == "\"") or (first == "'" and last == "'")) then
+        key = key:sub(2, -2):gsub("^%s+", ""):gsub("%s+$", "")
+    end
+    return key
+end
+
+local function copyText(value)
+    local copier = setclipboard or toclipboard
+    if type(copier) ~= "function" then
+        return false
+    end
+    return pcall(copier, tostring(value))
+end
+
+local function executorName()
+    if type(identifyexecutor) == "function" then
+        local ok, name = pcall(identifyexecutor)
+        if ok and name then return tostring(name) end
+    end
+    return "Unknown"
+end
+
+local function deviceName()
+    if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+        return "Mobile"
+    end
+    return "PC"
+end
+
+local function readableHwid()
+    local providers = { gethwid, get_hwid }
+    if syn and type(syn.gethwid) == "function" then
+        table.insert(providers, syn.gethwid)
+    end
+    for _, provider in ipairs(providers) do
+        if type(provider) == "function" then
+            local ok, value = pcall(provider)
+            if ok and value and tostring(value) ~= "" then
+                return tostring(value)
+            end
+        end
+    end
+    return nil
+end
+
+local parent = CoreGui
+pcall(function()
+    if type(gethui) == "function" then parent = gethui() end
+end)
+
+pcall(function()
+    local previous = parent:FindFirstChild("SnowyFlowAuthLoader")
+    if previous then previous:Destroy() end
+end)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "SnowyFlowAuthLoader"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = parent
+
+local clickSound = Instance.new("Sound")
+clickSound.Name = "SnowyClick"
+clickSound.SoundId = "rbxassetid://6895079853"
+clickSound.Volume = 0.42
+clickSound.PlaybackSpeed = 1
+clickSound.Looped = false
+clickSound.Parent = gui
+
+local function playClickSound()
+    pcall(function()
+        clickSound.TimePosition = 0
+        clickSound:Play()
+    end)
+end
+
+local function create(className, properties, targetParent)
+    local object = Instance.new(className)
+    for key, value in pairs(properties or {}) do
+        object[key] = value
+    end
+    object.Parent = targetParent
+    return object
+end
+
+local function round(object, radius)
+    return create("UICorner", { CornerRadius = UDim.new(0, radius or 12) }, object)
+end
+
+local function glassSurface(object, topColor, bottomColor, transparency, radius)
+    object.BackgroundColor3 = topColor or COLORS.glass
+    object.BackgroundTransparency = transparency or 0.3
+    object.BorderSizePixel = 0
+    object.ClipsDescendants = true
+    round(object, radius or 14)
+    create("UIGradient", {
+        Color = ColorSequence.new(
+            topColor or COLORS.glassRaised,
+            bottomColor or COLORS.glassDeep
+        ),
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.02),
+            NumberSequenceKeypoint.new(1, 0.10),
+        }),
+        Rotation = 105,
+    }, object)
+    return object
+end
+
+local function applyLucideData(icon, iconName)
+    local data = LUCIDE[iconName] or LUCIDE.info
+    icon.Image = data.image
+    if data.offset and data.size then
+        icon.ImageRectOffset = data.offset
+        icon.ImageRectSize = data.size
+    else
+        icon.ImageRectOffset = Vector2.new(0, 0)
+        icon.ImageRectSize = Vector2.new(0, 0)
+    end
+end
+
+local function lucideIcon(parentObject, iconName, position, size, color, zIndex)
+    local icon = create("ImageLabel", {
+        Name = "LucideIcon",
+        BackgroundTransparency = 1,
+        Position = position,
+        Size = size,
+        ImageColor3 = color or COLORS.textMuted,
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = zIndex or 4,
+    }, parentObject)
+    applyLucideData(icon, iconName)
+    return icon
+end
+
+local function playTween(object, duration, properties, easingStyle, easingDirection, channel)
+    local bucket = activeTweens[object]
+    if not bucket then
+        bucket = {}
+        activeTweens[object] = bucket
+    end
+    local key = channel or "default"
+    local previous = bucket[key]
+    if previous then
+        previous:Cancel()
+    end
+    local tween = TweenService:Create(
+        object,
+        TweenInfo.new(
+            duration,
+            easingStyle or Enum.EasingStyle.Quint,
+            easingDirection or Enum.EasingDirection.Out
+        ),
+        properties
+    )
+    bucket[key] = tween
+    tween.Completed:Connect(function()
+        if bucket[key] == tween then
+            bucket[key] = nil
+        end
+    end)
+    tween:Play()
+    return tween
+end
+
+local function textLabel(parentObject, text, position, size, font, textSize, color, alignment)
+    return create("TextLabel", {
+        BackgroundTransparency = 1,
+        Position = position,
+        Size = size,
+        Font = font or Enum.Font.Gotham,
+        Text = text,
+        TextColor3 = color or COLORS.text,
+        TextSize = textSize or 13,
+        TextXAlignment = alignment or Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+    }, parentObject)
+end
+
+local function bindButtonMotion(button, baseColor, hoverColor, pressedColor)
+    local scale = button:FindFirstChildOfClass("UIScale")
+    local function animate(color, value)
+        if button:GetAttribute("MotionDisabled") then return end
+        playTween(button, MOTION.quick, { BackgroundColor3 = color })
+        if scale then
+            playTween(scale, MOTION.quick, { Scale = value })
+        end
+    end
+
+    button.MouseEnter:Connect(function()
+        animate(hoverColor, 1.015)
+    end)
+    button.MouseLeave:Connect(function()
+        animate(baseColor, 1)
+    end)
+    button.MouseButton1Down:Connect(function()
+        animate(pressedColor, 0.975)
+    end)
+    button.MouseButton1Up:Connect(function()
+        animate(hoverColor, 1.01)
+    end)
+end
+
+local function makeButton(parentObject, name, text, position, size, baseColor, hoverColor, pressedColor, iconName)
+    local button = create("TextButton", {
+        Name = name,
+        Position = position,
+        Size = size,
+        BackgroundColor3 = baseColor,
+        BorderSizePixel = 0,
+        AutoButtonColor = false,
+        Active = true,
+        Text = "",
+        TextColor3 = COLORS.text,
+    }, parentObject)
+    round(button, 11)
+    create("UIScale", { Scale = 1 }, button)
+    local content = create("Frame", {
+        Name = "ButtonContent",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(0, 18),
+        AutomaticSize = Enum.AutomaticSize.X,
+        BackgroundTransparency = 1,
+        ZIndex = 5,
+    }, button)
+    create("UIListLayout", {
+        FillDirection = Enum.FillDirection.Horizontal,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+        VerticalAlignment = Enum.VerticalAlignment.Center,
+        Padding = UDim.new(0, iconName and 8 or 0),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+    }, content)
+    if iconName then
+        local icon = lucideIcon(
+            content,
+            iconName,
+            UDim2.new(),
+            UDim2.fromOffset(16, 16),
+            COLORS.text,
+            5
+        )
+        icon.LayoutOrder = 1
+        icon.ImageTransparency = 0.08
+    end
+    local label = textLabel(
+        content,
+        text,
+        UDim2.new(),
+        UDim2.fromOffset(0, 18),
+        Enum.Font.GothamBold,
+        13,
+        COLORS.text,
+        Enum.TextXAlignment.Center
+    )
+    label.Name = "ButtonLabel"
+    label.AutomaticSize = Enum.AutomaticSize.X
+    label.LayoutOrder = 2
+    label.TextTruncate = Enum.TextTruncate.None
+    label.ZIndex = 5
+    bindButtonMotion(
+        button,
+        baseColor,
+        hoverColor or COLORS.surfaceHover,
+        pressedColor or COLORS.surfacePressed
+    )
+    button.Activated:Connect(function()
+        if button.Active and not button:GetAttribute("MotionDisabled") then
+            playClickSound()
+        end
+    end)
+    return button
+end
+
+local function setButtonText(button, value)
+    local label = button:FindFirstChild("ButtonLabel", true)
+    if label then
+        label.Text = tostring(value or "")
+    end
+end
+
+local function setButtonTextSize(button, value)
+    local label = button:FindFirstChild("ButtonLabel", true)
+    if label then
+        label.TextSize = value
+    end
+end
+
+local function makeIconButton(parentObject, name, iconName, position, baseColor, hoverColor, pressedColor)
+    local button = create("ImageButton", {
+        Name = name,
+        Position = position,
+        Size = UDim2.fromOffset(32, 32),
+        BackgroundColor3 = baseColor,
+        BackgroundTransparency = 0.18,
+        BorderSizePixel = 0,
+        AutoButtonColor = false,
+        Active = true,
+        Image = "",
+    }, parentObject)
+    round(button, 10)
+    create("UIScale", { Scale = 1 }, button)
+    lucideIcon(button, iconName, UDim2.fromOffset(8, 8), UDim2.fromOffset(16, 16), COLORS.textMuted, 5)
+    bindButtonMotion(button, baseColor, hoverColor, pressedColor)
+    button.Activated:Connect(function()
+        if button.Active and not button:GetAttribute("MotionDisabled") then
+            playClickSound()
+        end
+    end)
+    return button
+end
+
+local function setButtonEnabled(button, enabled)
+    button.Active = enabled
+    button:SetAttribute("MotionDisabled", not enabled)
+    playTween(button, MOTION.quick, {
+        BackgroundColor3 = enabled and COLORS.secondary or COLORS.disabled,
+    })
+    local label = button:FindFirstChild("ButtonLabel", true)
+    if label then
+        playTween(label, MOTION.quick, { TextTransparency = enabled and 0 or 0.28 })
+    end
+    local icon = button:FindFirstChild("LucideIcon", true)
+    if icon then
+        playTween(icon, MOTION.quick, { ImageTransparency = enabled and 0.08 or 0.45 })
+    end
+end
+
+local backdrop = create("Frame", {
+    Name = "Backdrop",
+    Size = UDim2.fromScale(1, 1),
+    BackgroundColor3 = COLORS.backdrop,
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, gui)
+create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(3, 15, 25)),
+        ColorSequenceKeypoint.new(0.55, Color3.fromRGB(5, 9, 17)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(13, 8, 22)),
+    }),
+    Rotation = 18,
+}, backdrop)
+
+local shell = create("CanvasGroup", {
+    Name = "Shell",
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Position = UDim2.fromScale(0.5, 0.5),
+    Size = UDim2.fromOffset(DESKTOP_WIDTH, SHELL_HEIGHT),
+    BackgroundTransparency = 1,
+    GroupTransparency = 1,
+}, backdrop)
+local shellScale = create("UIScale", { Scale = 0.96 }, shell)
+
+local shellChrome = create("Frame", {
+    Name = "Chrome",
+    Size = UDim2.fromScale(1, 1),
+    BorderSizePixel = 0,
+    ZIndex = 2,
+}, shell)
+glassSurface(shellChrome, Color3.fromRGB(12, 23, 39), COLORS.shell, 0.12, 22)
+
+local snowLayer = create("Frame", {
+    Name = "SnowLayer",
+    Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ClipsDescendants = true,
+    Active = false,
+    ZIndex = 2,
+}, shellChrome)
+local snowRandom = Random.new()
+local snowflakes = {}
+local snowTweens = {}
+
+local function runSnowflake(carrier, flake, index)
+    task.delay((index - 1) * 0.55, function()
+        while gui.Parent and carrier.Parent do
+            local shellWidth = math.max(180, shell.Size.X.Offset)
+            local depthBand = (index - 1) % 3
+            local minimumSize = depthBand == 0 and 6 or (depthBand == 1 and 9 or 12)
+            local maximumSize = depthBand == 0 and 10 or (depthBand == 1 and 14 or 18)
+            local minimumTransparency = depthBand == 0 and 0.68 or (depthBand == 1 and 0.54 or 0.46)
+            local maximumTransparency = depthBand == 0 and 0.82 or (depthBand == 1 and 0.70 or 0.62)
+            local size = snowRandom:NextInteger(minimumSize, maximumSize)
+            local startX = snowRandom:NextInteger(10, math.max(10, shellWidth - size - 10))
+            local drift = snowRandom:NextInteger(-34, 34)
+            local duration = snowRandom:NextNumber(7.5, 12.5)
+
+            carrier.Position = UDim2.fromOffset(startX, -size - 10)
+            flake.Position = UDim2.fromOffset(0, 0)
+            flake.Size = UDim2.fromOffset(size, size)
+            flake.ImageTransparency = snowRandom:NextNumber(minimumTransparency, maximumTransparency)
+            flake.Rotation = snowRandom:NextInteger(-35, 35)
+
+            local fallTween = TweenService:Create(
+                carrier,
+                TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
+                { Position = UDim2.fromOffset(startX, SHELL_HEIGHT + size + 12) }
+            )
+            local driftTween = TweenService:Create(
+                flake,
+                TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                {
+                    Position = UDim2.fromOffset(drift, 0),
+                    Rotation = flake.Rotation + snowRandom:NextInteger(-90, 90),
+                }
+            )
+            snowTweens[carrier] = { fallTween, driftTween }
+            fallTween:Play()
+            driftTween:Play()
+            fallTween.Completed:Wait()
+            driftTween:Cancel()
+            snowTweens[carrier] = nil
+            task.wait(snowRandom:NextNumber(0.2, 1.2))
+        end
+    end)
+end
+
+for index = 1, DESKTOP_SNOWFLAKES do
+    local carrier = create("Frame", {
+        Name = "SnowCarrier" .. tostring(index),
+        Size = UDim2.fromOffset(1, 1),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Active = false,
+        ZIndex = 2,
+    }, snowLayer)
+    local flake = create("ImageLabel", {
+        Name = "Snowflake" .. tostring(index),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Image = SNOW_TEXTURE,
+        ScaleType = Enum.ScaleType.Fit,
+        Active = false,
+        ZIndex = 2,
+    }, carrier)
+    snowflakes[index] = carrier
+    runSnowflake(carrier, flake, index)
+end
+
+local function setSnowflakeCount(count)
+    for index, carrier in ipairs(snowflakes) do
+        carrier.Visible = index <= count
+    end
+end
+
+gui.Destroying:Connect(function()
+    for _, tweens in pairs(snowTweens) do
+        for _, tween in ipairs(tweens) do
+            tween:Cancel()
+        end
+    end
+end)
+
+local userPanel = create("Frame", {
+    Name = "UserInfo",
+    Position = UDim2.fromOffset(8, 8),
+    Size = UDim2.fromOffset(278, 604),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ZIndex = 3,
+}, shellChrome)
+
+local mainPanel = create("Frame", {
+    Name = "Main",
+    Position = UDim2.fromOffset(294, 8),
+    Size = UDim2.fromOffset(628, 604),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ZIndex = 3,
+}, shellChrome)
+
+local columnDivider = create("Frame", {
+    Name = "ColumnDivider",
+    Position = UDim2.fromOffset(286, 20),
+    Size = UDim2.new(0, 1, 1, -40),
+    BackgroundColor3 = COLORS.divider,
+    BackgroundTransparency = 0.84,
+    BorderSizePixel = 0,
+    ZIndex = 3,
+}, shellChrome)
+
+lucideIcon(userPanel, "user", UDim2.fromOffset(20, 19), UDim2.fromOffset(15, 15), COLORS.cyan, 5)
+textLabel(userPanel, "User Info", UDim2.fromOffset(43, 14), UDim2.new(1, -62, 0, 26), Enum.Font.GothamBold, 11, COLORS.cyan)
+create("Frame", {
+    Position = UDim2.fromOffset(18, 48),
+    Size = UDim2.new(1, -36, 0, 1),
+    BackgroundColor3 = COLORS.divider,
+    BackgroundTransparency = 0.72,
+    BorderSizePixel = 0,
+}, userPanel)
+
+local avatarHalo = create("Frame", {
+    Name = "AvatarHalo",
+    Position = UDim2.new(0.5, -50, 0, 58),
+    Size = UDim2.fromOffset(100, 100),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, userPanel)
+round(avatarHalo, 50)
+local avatarRing = create("Frame", {
+    Name = "AvatarGradientRing",
+    Position = UDim2.fromOffset(4, 4),
+    Size = UDim2.fromOffset(92, 92),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, avatarHalo)
+round(avatarRing, 46)
+local avatarRingStroke = create("UIStroke", {
+    Name = "AvatarRingStroke",
+    Color = COLORS.cyan,
+    Thickness = 3,
+    Transparency = 0,
+    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+}, avatarRing)
+create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 224, 255)),
+        ColorSequenceKeypoint.new(0.52, COLORS.primary),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(102, 102, 255)),
+    }),
+    Rotation = 35,
+}, avatarRingStroke)
+local avatarSeparator = create("Frame", {
+    Name = "AvatarSeparator",
+    Position = UDim2.fromOffset(2, 2),
+    Size = UDim2.fromOffset(88, 88),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, avatarRing)
+round(avatarSeparator, 44)
+local avatar = create("ImageLabel", {
+    Position = UDim2.fromOffset(2, 2),
+    Size = UDim2.fromOffset(84, 84),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    Image = "rbxassetid://0",
+    ScaleType = Enum.ScaleType.Crop,
+}, avatarSeparator)
+round(avatar, 42)
+local onlineDot = create("Frame", {
+    Name = "OnlineDotBacking",
+    Position = UDim2.new(1, -26, 1, -26),
+    Size = UDim2.fromOffset(22, 22),
+    BackgroundColor3 = Color3.fromRGB(4, 12, 23),
+    BorderSizePixel = 0,
+}, avatarHalo)
+round(onlineDot, 11)
+local onlineCore = create("Frame", {
+    Position = UDim2.fromOffset(5, 5),
+    Size = UDim2.fromOffset(12, 12),
+    BackgroundColor3 = COLORS.success,
+    BorderSizePixel = 0,
+}, onlineDot)
+round(onlineCore, 6)
+local onlinePulseUp = TweenService:Create(
+    onlineCore,
+    TweenInfo.new(1.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+    { BackgroundColor3 = Color3.fromRGB(90, 255, 186) }
+)
+onlinePulseUp:Play()
+gui.Destroying:Connect(function()
+    onlinePulseUp:Cancel()
+end)
+pcall(function()
+    avatar.Image = Players:GetUserThumbnailAsync(
+        player.UserId,
+        Enum.ThumbnailType.HeadShot,
+        Enum.ThumbnailSize.Size420x420
+    )
+end)
+
+local displayName = player and (player.DisplayName or player.Name) or "Snowy User"
+local userName = player and player.Name or "unknown"
+textLabel(userPanel, displayName, UDim2.fromOffset(18, 164), UDim2.new(1, -36, 0, 22), Enum.Font.GothamBold, 14, COLORS.text, Enum.TextXAlignment.Center)
+textLabel(userPanel, "@" .. userName, UDim2.fromOffset(18, 185), UDim2.new(1, -36, 0, 18), Enum.Font.Gotham, 10, COLORS.textFaint, Enum.TextXAlignment.Center)
+
+local selected = resolveLoader()
+local gameTone = selected and COLORS.success or COLORS.danger
+local infoGroup = create("Frame", {
+    Name = "ProfileDetails",
+    Position = UDim2.fromOffset(18, 214),
+    Size = UDim2.new(1, -36, 0, 166),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, userPanel)
+local stats = {
+    { "Executor", executorName(), "monitor", COLORS.textMuted },
+    { "Device", deviceName(), deviceName() == "Mobile" and "smartphone" or "monitor", COLORS.textMuted },
+    { "HWID", readableHwid() and "Available" or "FlowAuth managed", "shield", COLORS.textMuted },
+    { "Game", selected and selected.name or "Unsupported", "gamepad", gameTone },
+}
+for index, item in ipairs(stats) do
+    local y = (index - 1) * 41
+    lucideIcon(infoGroup, item[3], UDim2.fromOffset(14, y + 12), UDim2.fromOffset(16, 16), item[4], 5)
+    textLabel(infoGroup, item[1], UDim2.fromOffset(42, y + 4), UDim2.fromOffset(78, 15), Enum.Font.GothamMedium, 9, COLORS.textFaint)
+    textLabel(infoGroup, item[2], UDim2.fromOffset(42, y + 18), UDim2.new(1, -56, 0, 18), Enum.Font.GothamMedium, 10, item[4])
+    if index < #stats then
+        create("Frame", {
+            Position = UDim2.fromOffset(42, y + 40),
+            Size = UDim2.new(1, -56, 0, 1),
+            BackgroundColor3 = COLORS.divider,
+            BackgroundTransparency = 0.84,
+            BorderSizePixel = 0,
+        }, infoGroup)
+    end
+end
+
+local metricsStrip = create("Frame", {
+    Name = "Metrics",
+    Position = UDim2.fromOffset(18, 392),
+    Size = UDim2.new(1, -36, 0, 66),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, userPanel)
+create("Frame", {
+    Position = UDim2.new(0.5, 0, 0, 12),
+    Size = UDim2.new(0, 1, 1, -24),
+    BackgroundColor3 = COLORS.divider,
+    BackgroundTransparency = 0.78,
+    BorderSizePixel = 0,
+}, metricsStrip)
+
+local sessionCard = create("Frame", {
+    Size = UDim2.new(0.5, 0, 1, 0),
+    BackgroundTransparency = 1,
+}, metricsStrip)
+lucideIcon(sessionCard, "clock", UDim2.fromOffset(14, 16), UDim2.fromOffset(16, 16), COLORS.cyan, 5)
+textLabel(sessionCard, "Session", UDim2.fromOffset(38, 9), UDim2.new(1, -48, 0, 18), Enum.Font.GothamMedium, 9, COLORS.textFaint)
+local sessionText = textLabel(sessionCard, "00:00", UDim2.fromOffset(38, 27), UDim2.new(1, -48, 0, 22), Enum.Font.GothamBold, 12, COLORS.cyan)
+
+local pingCard = create("Frame", {
+    Position = UDim2.fromScale(0.5, 0),
+    Size = UDim2.new(0.5, 0, 1, 0),
+    BackgroundTransparency = 1,
+}, metricsStrip)
+lucideIcon(pingCard, "wifi", UDim2.fromOffset(14, 16), UDim2.fromOffset(16, 16), COLORS.success, 5)
+textLabel(pingCard, "Ping", UDim2.fromOffset(38, 9), UDim2.new(1, -48, 0, 18), Enum.Font.GothamMedium, 9, COLORS.textFaint)
+local pingText = textLabel(pingCard, "-- ms", UDim2.fromOffset(38, 27), UDim2.new(1, -48, 0, 22), Enum.Font.GothamBold, 12, COLORS.success)
+
+local connectionCard = create("Frame", {
+    Position = UDim2.fromOffset(18, 502),
+    Size = UDim2.new(1, -36, 0, 68),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, userPanel)
+lucideIcon(connectionCard, "check-circle", UDim2.fromOffset(14, 24), UDim2.fromOffset(20, 20), COLORS.success, 5)
+textLabel(connectionCard, "Connected to Snowy Hub", UDim2.fromOffset(44, 11), UDim2.new(1, -56, 0, 24), Enum.Font.GothamBold, 12, COLORS.success)
+textLabel(connectionCard, "Snowy Hub is ready", UDim2.fromOffset(44, 35), UDim2.new(1, -56, 0, 18), Enum.Font.Gotham, 9, COLORS.textMuted)
+
+local header = create("Frame", {
+    Name = "Header",
+    Size = UDim2.new(1, 0, 0, 62),
+    BackgroundTransparency = 1,
+    Active = true,
+}, mainPanel)
+textLabel(header, "Snowy Hub", UDim2.fromOffset(22, 8), UDim2.fromOffset(160, 30), Enum.Font.GothamBold, 22, COLORS.text)
+textLabel(header, "Secure FlowAuth loader", UDim2.fromOffset(23, 35), UDim2.fromOffset(190, 16), Enum.Font.Gotham, 9, COLORS.textFaint)
+
+local minimize = makeIconButton(
+    header,
+    "Minimize",
+    "minus",
+    UDim2.new(1, -82, 0, 14),
+    COLORS.surfaceRaised,
+    COLORS.surfaceHover,
+    COLORS.surfacePressed
+)
+local close = makeIconButton(
+    header,
+    "Close",
+    "x",
+    UDim2.new(1, -44, 0, 14),
+    COLORS.surfaceRaised,
+    Color3.fromRGB(74, 38, 53),
+    Color3.fromRGB(54, 27, 40)
+)
+create("Frame", {
+    Position = UDim2.fromOffset(20, 61),
+    Size = UDim2.new(1, -40, 0, 1),
+    BackgroundColor3 = COLORS.divider,
+    BackgroundTransparency = 0.74,
+    BorderSizePixel = 0,
+}, header)
+
+local serviceCard = create("Frame", {
+    Name = "ServiceCard",
+    Position = UDim2.fromOffset(20, 74),
+    Size = UDim2.new(1, -40, 0, 88),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, mainPanel)
+local serviceLogoSlot = create("Frame", {
+    Name = "ServiceLogoSlot",
+    Position = UDim2.fromOffset(0, 2),
+    Size = UDim2.fromOffset(116, 82),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+}, serviceCard)
+local logo = create("ImageLabel", {
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Position = UDim2.fromScale(0.5, 0.5),
+    Size = UDim2.fromOffset(132, 88),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    Image = "rbxassetid://123802801726537",
+    ScaleType = Enum.ScaleType.Fit,
+}, serviceLogoSlot)
+textLabel(serviceCard, "ACTIVE SERVICE", UDim2.fromOffset(128, 11), UDim2.new(1, -318, 0, 17), Enum.Font.GothamBold, 9, COLORS.success)
+textLabel(serviceCard, "Snowy Studios", UDim2.fromOffset(128, 29), UDim2.new(1, -318, 0, 24), Enum.Font.GothamBold, 15, COLORS.text)
+textLabel(serviceCard, "Verified client delivery", UDim2.fromOffset(128, 54), UDim2.new(1, -318, 0, 18), Enum.Font.Gotham, 10, COLORS.textFaint)
+local secureBadge = create("Frame", {
+    Position = UDim2.new(1, -172, 0.5, -17),
+    Size = UDim2.fromOffset(154, 34),
+    BackgroundColor3 = Color3.fromRGB(10, 53, 44),
+    BackgroundTransparency = 0.18,
+    BorderSizePixel = 0,
+}, serviceCard)
+round(secureBadge, 9)
+lucideIcon(secureBadge, "shield-check", UDim2.fromOffset(12, 9), UDim2.fromOffset(16, 16), COLORS.success, 5)
+textLabel(secureBadge, "FLOWAUTH VERIFIED", UDim2.fromOffset(36, 0), UDim2.new(1, -44, 1, 0), Enum.Font.GothamBold, 9, COLORS.success)
+
+textLabel(mainPanel, "SECURE ACCESS", UDim2.fromOffset(22, 174), UDim2.new(1, -44, 0, 16), Enum.Font.GothamBold, 9, COLORS.cyan)
+textLabel(mainPanel, "Enter your FlowAuth key to launch the supported script", UDim2.fromOffset(22, 190), UDim2.new(1, -44, 0, 19), Enum.Font.Gotham, 11, COLORS.textMuted)
+
+local input = create("TextBox", {
+    Name = "KeyInput",
+    Position = UDim2.fromOffset(20, 214),
+    Size = UDim2.new(1, -40, 0, 50),
+    BackgroundColor3 = COLORS.input,
+    BackgroundTransparency = 0.24,
+    BorderSizePixel = 0,
+    ClearTextOnFocus = false,
+    Font = Enum.Font.GothamMedium,
+    PlaceholderText = "Paste your FlowAuth key",
+    PlaceholderColor3 = COLORS.textMuted,
+    Text = "",
+    TextColor3 = COLORS.text,
+    TextTransparency = 0,
+    TextSize = 13,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 4,
+}, mainPanel)
+round(input, 12)
+local inputFocused = false
+local inputBorder = create("UIStroke", {
+    Name = "KeyInputBorder",
+    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    Color = COLORS.cyan,
+    Thickness = 1.35,
+    Transparency = 0.18,
+}, input)
+local inputBorderGradient = create("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(21, 64, 143)),
+        ColorSequenceKeypoint.new(0.44, Color3.fromRGB(37, 133, 222)),
+        ColorSequenceKeypoint.new(0.52, Color3.fromRGB(99, 232, 255)),
+        ColorSequenceKeypoint.new(0.60, Color3.fromRGB(37, 133, 222)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(21, 64, 143)),
+    }),
+    Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.58),
+        NumberSequenceKeypoint.new(0.40, 0.38),
+        NumberSequenceKeypoint.new(0.50, 0),
+        NumberSequenceKeypoint.new(0.62, 0.38),
+        NumberSequenceKeypoint.new(1, 0.58),
+    }),
+    Rotation = 0,
+}, inputBorder)
+local inputBorderSpin = TweenService:Create(
+    inputBorderGradient,
+    TweenInfo.new(2.65, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1),
+    { Rotation = 360 }
+)
+inputBorderSpin:Play()
+gui.Destroying:Connect(function()
+    inputBorderSpin:Cancel()
+end)
+local inputKeyIcon = lucideIcon(mainPanel, "key", UDim2.fromOffset(36, 230), UDim2.fromOffset(18, 18), COLORS.textMuted, 5)
+create("UIPadding", {
+    PaddingLeft = UDim.new(0, 46),
+    PaddingRight = UDim.new(0, 16),
+}, input)
+
+local primaryRow = create("Frame", {
+    Position = UDim2.fromOffset(20, 276),
+    Size = UDim2.new(1, -40, 0, 46),
+    BackgroundTransparency = 1,
+}, mainPanel)
+create("UIListLayout", {
+    FillDirection = Enum.FillDirection.Horizontal,
+    Padding = UDim.new(0, 10),
+    SortOrder = Enum.SortOrder.LayoutOrder,
+}, primaryRow)
+local getKey = makeButton(primaryRow, "GetKey", "Get Key", UDim2.new(), UDim2.new(0.5, -5, 1, 0), COLORS.primary, COLORS.primaryHover, COLORS.primaryPressed, "key")
+getKey.LayoutOrder = 1
+local redeem = makeButton(primaryRow, "Redeem", "Redeem", UDim2.new(), UDim2.new(0.5, -5, 1, 0), COLORS.secondary, COLORS.secondaryHover, COLORS.secondaryPressed, "shield-check")
+redeem.LayoutOrder = 2
+
+local utilityRow = create("Frame", {
+    Position = UDim2.fromOffset(20, 334),
+    Size = UDim2.new(1, -40, 0, 38),
+    BackgroundTransparency = 1,
+}, mainPanel)
+create("UIListLayout", {
+    FillDirection = Enum.FillDirection.Horizontal,
+    Padding = UDim.new(0, 8),
+    SortOrder = Enum.SortOrder.LayoutOrder,
+}, utilityRow)
+local discord = makeButton(utilityRow, "Discord", "Discord", UDim2.new(), UDim2.new(1 / 3, -6, 1, 0), COLORS.surfaceRaised, COLORS.surfaceHover, COLORS.surfacePressed, "message-circle")
+discord.LayoutOrder = 1
+local copyHwid = makeButton(utilityRow, "CopyHWID", "Copy HWID", UDim2.new(), UDim2.new(1 / 3, -6, 1, 0), COLORS.surfaceRaised, COLORS.surfaceHover, COLORS.surfacePressed, "copy")
+copyHwid.LayoutOrder = 2
+local settingsButton = makeButton(utilityRow, "Settings", "Settings", UDim2.new(), UDim2.new(1 / 3, -6, 1, 0), COLORS.surfaceRaised, COLORS.surfaceHover, COLORS.surfacePressed, "settings")
+settingsButton.LayoutOrder = 3
+setButtonTextSize(discord, 11)
+setButtonTextSize(copyHwid, 11)
+setButtonTextSize(settingsButton, 11)
+
+local statusCard = create("Frame", {
+    Name = "StatusCard",
+    Position = UDim2.fromOffset(20, 384),
+    Size = UDim2.new(1, -40, 0, 46),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ClipsDescendants = true,
+}, mainPanel)
+local statusAccent = create("Frame", {
+    Position = UDim2.fromOffset(0, 8),
+    Size = UDim2.new(0, 3, 1, -16),
+    BackgroundColor3 = COLORS.cyan,
+    BorderSizePixel = 0,
+}, statusCard)
+round(statusAccent, 2)
+local statusIcon = lucideIcon(statusCard, "info", UDim2.fromOffset(16, 15), UDim2.fromOffset(16, 16), COLORS.cyan, 5)
+local statusSummary = textLabel(statusCard, "", UDim2.fromOffset(42, 13), UDim2.new(1, -58, 0, 20), Enum.Font.GothamBold, 11, COLORS.textMuted)
+statusSummary.Name = "StatusSummary"
+local statusDetail = textLabel(statusCard, "", UDim2.fromOffset(42, 34), UDim2.new(1, -58, 0, 38), Enum.Font.Gotham, 9, COLORS.textMuted)
+statusDetail.Name = "StatusDetail"
+statusDetail.TextWrapped = true
+statusDetail.TextTruncate = Enum.TextTruncate.None
+statusDetail.TextYAlignment = Enum.TextYAlignment.Top
+statusDetail.Visible = false
+local copyError = makeButton(statusCard, "CopyError", "Copy Error", UDim2.new(1, -108, 0, 8), UDim2.fromOffset(94, 26), COLORS.surfaceRaised, COLORS.surfaceHover, COLORS.surfacePressed, "copy")
+setButtonTextSize(copyError, 9)
+copyError.Visible = false
+
+local accessCard = create("Frame", {
+    Name = "PremiumAccess",
+    Position = UDim2.fromOffset(20, 442),
+    Size = UDim2.new(1, -40, 0, 146),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ClipsDescendants = true,
+}, mainPanel)
+create("Frame", {
+    Name = "PremiumDivider",
+    Position = UDim2.fromOffset(0, 0),
+    Size = UDim2.new(1, 0, 0, 1),
+    BackgroundColor3 = COLORS.divider,
+    BackgroundTransparency = 0.84,
+    BorderSizePixel = 0,
+}, accessCard)
+local premiumBadge = textLabel(accessCard, "SNOWY+", UDim2.fromOffset(18, 14), UDim2.fromOffset(62, 18), Enum.Font.GothamBold, 8, COLORS.premium, Enum.TextXAlignment.Center)
+premiumBadge.BackgroundTransparency = 0
+premiumBadge.BackgroundColor3 = Color3.fromRGB(67, 50, 27)
+round(premiumBadge, 6)
+textLabel(accessCard, "Premium Access", UDim2.fromOffset(18, 40), UDim2.new(1, -170, 0, 22), Enum.Font.GothamBold, 15, COLORS.text)
+textLabel(accessCard, "Unlock extra perks and priority support", UDim2.fromOffset(18, 64), UDim2.new(1, -170, 0, 19), Enum.Font.GothamMedium, 11, COLORS.textMuted)
+textLabel(accessCard, "getsnowy.xyz/pricing", UDim2.fromOffset(18, 87), UDim2.new(1, -170, 0, 18), Enum.Font.GothamMedium, 10, COLORS.premium)
+local premiumPerks = textLabel(accessCard, "Priority support  |  Extra tools  |  Early access", UDim2.fromOffset(18, 111), UDim2.new(1, -170, 0, 19), Enum.Font.GothamMedium, 10, COLORS.textFaint)
+local plansSlot = create("Frame", {
+    Name = "PlansSlot",
+    Position = UDim2.new(1, -136, 0.5, -20),
+    Size = UDim2.fromOffset(118, 40),
+    BackgroundTransparency = 1,
+}, accessCard)
+local premiumButton = makeButton(plansSlot, "PremiumPlans", "View Plans", UDim2.fromOffset(0, 0), UDim2.fromScale(1, 1), COLORS.premiumAction, COLORS.premiumHover, COLORS.premiumPressed, "external-link")
+setButtonTextSize(premiumButton, 12)
+local plansScale = create("UIScale", { Scale = 1 }, plansSlot)
+local plansMotionStartedAt = os.clock()
+local plansMotionConnection = RunService.RenderStepped:Connect(function()
+    if not gui.Parent or not premiumButton.Parent then return end
+    local phase = os.clock() - plansMotionStartedAt
+    premiumButton.Position = UDim2.fromOffset(
+        math.cos(phase * 0.90) * 2.0,
+        math.sin(phase * 1.10) * 3.0
+    )
+    premiumButton.Rotation = math.sin(phase * 0.74 + 0.55) * 0.65
+    plansScale.Scale = 1 + math.sin(phase * 0.62 + 1.20) * 0.012
+end)
+gui.Destroying:Connect(function()
+    if plansMotionConnection then
+        plansMotionConnection:Disconnect()
+    end
+end)
+
+local lastErrorDetail = ""
+local function replacePlain(value, needle, replacement)
+    if needle == "" then return value end
+    local pieces = {}
+    local cursor = 1
+    while true do
+        local first, last = value:find(needle, cursor, true)
+        if not first then
+            table.insert(pieces, value:sub(cursor))
+            break
+        end
+        table.insert(pieces, value:sub(cursor, first - 1))
+        table.insert(pieces, replacement)
+        cursor = last + 1
+    end
+    return table.concat(pieces)
+end
+
+local function sanitizeDiagnostic(value)
+    local detail = tostring(value or "")
+    local rawKey = tostring(input.Text or "")
+    local normalizedKey = normalizeKey(rawKey)
+    if rawKey ~= "" then
+        detail = replacePlain(detail, rawKey, "[key redacted]")
+    end
+    if normalizedKey ~= "" and normalizedKey ~= rawKey then
+        detail = replacePlain(detail, normalizedKey, "[key redacted]")
+    end
+    return detail:gsub("[%c]+", " "):gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function setStatusLayout(hasDetail, tone)
+    local statusHeight = hasDetail and 82 or 46
+    local accessY = hasDetail and 478 or 442
+    local accessHeight = hasDetail and 110 or 146
+    if hasDetail then
+        statusDetail.Visible = true
+        copyError.Visible = true
+    else
+        statusDetail.Visible = false
+        copyError.Visible = false
+    end
+    premiumPerks.Visible = not hasDetail
+    playTween(statusCard, MOTION.normal, {
+        Size = UDim2.new(1, -40, 0, statusHeight),
+    })
+    playTween(accessCard, MOTION.normal, {
+        Position = UDim2.fromOffset(20, accessY),
+        Size = UDim2.new(1, -40, 0, accessHeight),
+    })
+    playTween(statusSummary, MOTION.quick, {
+        Position = UDim2.fromOffset(42, hasDetail and 8 or 13),
+        Size = UDim2.new(1, hasDetail and -160 or -58, 0, 20),
+        TextColor3 = tone,
+    })
+    playTween(statusIcon, MOTION.quick, {
+        Position = UDim2.fromOffset(16, hasDetail and 10 or 15),
+    })
+    statusSummary.TextXAlignment = Enum.TextXAlignment.Left
+end
+
+local function setStatus(message, color, detail)
+    local tone = color or COLORS.textMuted
+    local safeDetail = sanitizeDiagnostic(detail)
+    local hasDetail = safeDetail ~= ""
+    statusSummary.Text = tostring(message or "")
+    local iconName = "info"
+    if tone == COLORS.success then
+        iconName = "check-circle"
+    elseif tone == COLORS.warning or tone == COLORS.danger then
+        iconName = "alert-circle"
+    end
+    applyLucideData(statusIcon, iconName)
+    playTween(statusIcon, MOTION.quick, { ImageColor3 = tone })
+    playTween(statusAccent, MOTION.quick, { BackgroundColor3 = tone })
+    setStatusLayout(hasDetail, tone)
+    lastErrorDetail = safeDetail
+    if hasDetail then
+        statusDetail.Text = #safeDetail > 190 and (safeDetail:sub(1, 187) .. "...") or safeDetail
+        warn("[SnowyHub] " .. tostring(message or "Error") .. " " .. safeDetail)
+    else
+        statusDetail.Text = ""
+    end
+end
+
+if selected then
+    setStatus("Ready for " .. selected.name .. ".", COLORS.cyan)
+else
+    setStatus("Unsupported PlaceId " .. tostring(game.PlaceId) .. " / GameId " .. tostring(game.GameId), COLORS.danger)
+end
+
+local busy = false
+local function redeemKey()
+    if busy then return end
+    local entry = resolveLoader()
+    if not entry then
+        setStatus("This experience is not supported.", COLORS.danger)
+        return
+    end
+    local key = normalizeKey(input.Text)
+    if key == "" then
+        setStatus("Enter your FlowAuth key first.", COLORS.warning)
+        return
+    end
+
+    busy = true
+    setButtonEnabled(redeem, false)
+    setButtonText(redeem, "Loading...")
+    setStatus("Loading " .. entry.name .. " through FlowAuth...", COLORS.cyan)
+
+    script_key = key
+    _G.script_key = key
+    if type(getgenv) == "function" then
+        getgenv().script_key = key
+    end
+
+    input.Text = ""
+    gui:Destroy()
+    return loadstring(game:HttpGet(entry.url))()
+end
+
+copyError.Activated:Connect(function()
+    if lastErrorDetail ~= "" and copyText(lastErrorDetail) then
+        setButtonText(copyError, "Copied")
+        task.delay(1.2, function()
+            if copyError.Parent then setButtonText(copyError, "Copy Error") end
+        end)
+    else
+        warn("[SnowyHub] Clipboard API unavailable; read the full error above in the executor console.")
+    end
+end)
+
+getKey.Activated:Connect(function()
+    if copyText(DISCORD_URL) then
+        setStatus("Discord link copied.", COLORS.success)
+    else
+        setStatus(DISCORD_URL, COLORS.warning)
+    end
+end)
+
+discord.Activated:Connect(function()
+    if copyText(DISCORD_URL) then
+        setStatus("Discord invite copied.", COLORS.success)
+    else
+        setStatus(DISCORD_URL, COLORS.warning)
+    end
+end)
+
+copyHwid.Activated:Connect(function()
+    local hwid = readableHwid()
+    if hwid and copyText(hwid) then
+        setStatus("HWID copied.", COLORS.success)
+    else
+        setStatus("FlowAuth will bind your HWID automatically.", COLORS.warning)
+    end
+end)
+
+premiumButton.Activated:Connect(function()
+    if copyText(PRICING_URL) then
+        setStatus("Pricing link copied.", COLORS.success)
+    else
+        setStatus(PRICING_URL, COLORS.warning)
+    end
+end)
+
+input.Focused:Connect(function()
+    inputFocused = true
+    if input.Text == "" then
+        input.PlaceholderText = "Paste your FlowAuth key"
+    end
+    playTween(input, MOTION.quick, { BackgroundColor3 = COLORS.inputFocus })
+    playTween(inputBorder, MOTION.quick, { Transparency = 0.06 })
+    playTween(inputKeyIcon, MOTION.quick, { ImageColor3 = COLORS.cyan })
+end)
+
+input.FocusLost:Connect(function()
+    inputFocused = false
+    playTween(input, MOTION.quick, { BackgroundColor3 = COLORS.input })
+    playTween(inputBorder, MOTION.quick, { Transparency = 0.18 })
+    playTween(inputKeyIcon, MOTION.quick, { ImageColor3 = COLORS.textFaint })
+end)
+
+local waitingKeyStates = {
+    "Waiting for key",
+    "Waiting for key.",
+    "Waiting for key..",
+    "Waiting for key...",
+}
+task.spawn(function()
+    local waitingIndex = 1
+    while gui.Parent do
+        if input.Text == "" and not inputFocused then
+            input.PlaceholderText = waitingKeyStates[waitingIndex]
+            waitingIndex = waitingIndex % #waitingKeyStates + 1
+        end
+        task.wait(0.45)
+    end
+end)
+
+local detailsVisible = true
+local requestedDetails = true
+local viewportCompact = false
+local detailsTransitioning = false
+local detailsTransitionVersion = 0
+local updateResponsiveScale
+
+local function setDetailsVisible(visible, announce)
+    visible = visible and not viewportCompact
+    if visible == detailsVisible and not detailsTransitioning then
+        setSnowflakeCount(visible and DESKTOP_SNOWFLAKES or COMPACT_SNOWFLAKES)
+        return
+    end
+
+    detailsTransitionVersion = detailsTransitionVersion + 1
+    local transitionVersion = detailsTransitionVersion
+    detailsTransitioning = true
+    detailsVisible = visible
+    setSnowflakeCount(visible and DESKTOP_SNOWFLAKES or COMPACT_SNOWFLAKES)
+
+    columnDivider.Visible = true
+    if visible then
+        userPanel.Visible = true
+        userPanel.Position = UDim2.fromOffset(-286, 8)
+        columnDivider.BackgroundTransparency = 1
+        playTween(shell, MOTION.slow, {
+            Size = UDim2.fromOffset(DESKTOP_WIDTH, SHELL_HEIGHT),
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "layout")
+        playTween(mainPanel, MOTION.slow, {
+            Position = UDim2.fromOffset(294, 8),
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "details")
+        playTween(columnDivider, MOTION.slow, {
+            BackgroundTransparency = 0.84,
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "details")
+        local profileTween = playTween(userPanel, MOTION.slow, {
+            Position = UDim2.fromOffset(8, 8),
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "details")
+        profileTween.Completed:Connect(function()
+            if transitionVersion == detailsTransitionVersion then
+                detailsTransitioning = false
+            end
+        end)
+    else
+        playTween(shell, MOTION.slow, {
+            Size = UDim2.fromOffset(COMPACT_WIDTH, SHELL_HEIGHT),
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "layout")
+        playTween(mainPanel, MOTION.slow, {
+            Position = UDim2.fromOffset(8, 8),
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "details")
+        playTween(columnDivider, MOTION.slow, {
+            BackgroundTransparency = 1,
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "details")
+        local profileTween = playTween(userPanel, MOTION.slow, {
+            Position = UDim2.fromOffset(-286, 8),
+        }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut, "details")
+        profileTween.Completed:Connect(function()
+            if gui.Parent and transitionVersion == detailsTransitionVersion and not detailsVisible then
+                userPanel.Visible = false
+                columnDivider.Visible = false
+                detailsTransitioning = false
+            end
+        end)
+    end
+    if announce then
+        setStatus(visible and "Profile details shown." or "Compact mode enabled.", COLORS.textMuted)
+    end
+    if updateResponsiveScale then
+        task.defer(updateResponsiveScale)
+    end
+end
+
+settingsButton.Activated:Connect(function()
+    if detailsTransitioning then return end
+    if viewportCompact then
+        setStatus("Profile is hidden on compact screens.", COLORS.warning)
+        return
+    end
+    requestedDetails = not requestedDetails
+    setDetailsVisible(requestedDetails, true)
+end)
+
+minimize.Activated:Connect(function()
+    if detailsTransitioning then return end
+    requestedDetails = false
+    setDetailsVisible(false, true)
+end)
+
+local closing = false
+local function closeLoader()
+    if closing then return end
+    closing = true
+    playTween(backdrop, MOTION.normal, { BackgroundTransparency = 1 })
+    playTween(shellScale, MOTION.normal, { Scale = shellScale.Scale * 0.96 })
+    local tween = playTween(shell, MOTION.normal, { GroupTransparency = 1 }, nil, nil, "visibility")
+    tween.Completed:Connect(function()
+        if gui.Parent then gui:Destroy() end
+    end)
+end
+
+close.Activated:Connect(closeLoader)
+redeem.Activated:Connect(redeemKey)
+input.FocusLost:Connect(function(enterPressed)
+    if enterPressed then redeemKey() end
+end)
+
+local startedAt = os.clock()
+task.spawn(function()
+    while gui.Parent do
+        local elapsed = math.floor(os.clock() - startedAt)
+        sessionText.Text = string.format("%02d:%02d", math.floor(elapsed / 60), elapsed % 60)
+        local ping = "--"
+        pcall(function()
+            ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValueString():match("[%d%.]+") or "--"
+        end)
+        pingText.Text = tostring(ping) .. " ms"
+        task.wait(1)
+    end
+end)
+
+local dragging = false
+local dragStart
+local shellStart
+header.InputBegan:Connect(function(inputObject)
+    if inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = inputObject.Position
+        shellStart = shell.Position
+    end
+end)
+UserInputService.InputEnded:Connect(function(inputObject)
+    if inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+UserInputService.InputChanged:Connect(function(inputObject)
+    if dragging and (inputObject.UserInputType == Enum.UserInputType.MouseMovement or inputObject.UserInputType == Enum.UserInputType.Touch) then
+        local delta = inputObject.Position - dragStart
+        shell.Position = UDim2.new(
+            shellStart.X.Scale,
+            shellStart.X.Offset + delta.X,
+            shellStart.Y.Scale,
+            shellStart.Y.Offset + delta.Y
+        )
+    end
+end)
+
+local entered = false
+local responsiveScale = 1
+updateResponsiveScale = function()
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+    local baseWidth = detailsVisible and DESKTOP_WIDTH or COMPACT_WIDTH
+    responsiveScale = math.min(
+        1,
+        math.max(0.42, (viewport.X - 24) / baseWidth),
+        math.max(0.42, (viewport.Y - 24) / SHELL_HEIGHT)
+    )
+    if entered then
+        playTween(shellScale, MOTION.normal, { Scale = responsiveScale })
+    else
+        shellScale.Scale = responsiveScale * 0.96
+    end
+end
+
+local function applyResponsiveLayout()
+    local camera = workspace.CurrentCamera
+    local viewport = camera and camera.ViewportSize or Vector2.new(1280, 720)
+    viewportCompact = viewport.X < 860
+    setDetailsVisible(requestedDetails and not viewportCompact, false)
+    updateResponsiveScale()
+end
+
+applyResponsiveLayout()
+pcall(function()
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(applyResponsiveLayout)
+end)
+
+task.defer(function()
+    if not gui.Parent then return end
+    entered = true
+    playTween(backdrop, MOTION.slow, { BackgroundTransparency = 0.78 })
+    playTween(shell, MOTION.slow, { GroupTransparency = 0 }, nil, nil, "visibility")
+    playTween(shellScale, MOTION.slow, { Scale = responsiveScale })
+end)
+"
+local chunk,reason=loadstring(source,"=FlowAuthUI")
+if not chunk then error("FlowAuth UI compilation failed: "..tostring(reason),0) end
+return chunk()

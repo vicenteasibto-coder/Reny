@@ -1,0 +1,6 @@
+local old_muzzle = utility.PlayParticles; utility.PlayParticles = function(s, p)
+    if getgenv().eteritum.guns.no_muzzle_flash and p.Name == "_muzzle" then
+        return;
+    end;
+    return old_muzzle(s, p);
+end;

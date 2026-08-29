@@ -1,0 +1,18 @@
+local QueueGonnaUse = "1v1"
+local AutoMatch = false
+
+queuetab:addToggle({name = "Enabled", flag = "AutoQueueEnabled", callback = function(v)
+    AutoMatch = v
+end})
+
+queuetab:addDropdown({name = "Select Match", flag = "AutoQueueMatch", items = {"1v1", "2v2", "3v3", "4v4", "5v5", "2v2_beginner"}, default = "1v1", callback = function(v)
+    QueueGonnaUse = v
+end})
+
+runservice.Heartbeat:Connect(function()
+    if AutoMatch then
+        if not is_in_match() then
+            rs.Remotes.Matchmaking.JoinQueue:InvokeServer(QueueGonnaUse)
+        end
+    end
+end)

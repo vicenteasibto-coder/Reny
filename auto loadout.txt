@@ -1,0 +1,35 @@
+local chosenWeapons = {
+    Primary = "Assault Rifle",
+    Secondary = "Handgun",
+    Melee = "Fists",
+    Utility = "Grenade"
+}
+
+local AutoLoadSelect = false
+
+loadouttab:addToggle({name = "Enabled", flag = "AutoLoadoutEnabled", callback = function(v)
+    AutoLoadSelect = v
+end})
+
+loadouttab:addDropdown({name = "Primary", flag = "AutoSelectPrimary", items = {"Crossbow", "Grenade Launcher", "Brust Rifle", "Distortion", "Flamethrower", "Shotgun", "RPG", "Assault Rifle", "Sniper", "Minigun", "Energy Rifle", "Paintball Gun", "Bow", "Gunblade"}, default = "Assault Rifle", callback = function(v)
+    chosenWeapons.Primary = v
+end})
+
+loadouttab:addDropdown({name = "Secondary", flag = "AutoSelectSecondary", items = {"Slingshot", "Flare Gun", "Spray", "Shorty", "Energy Pistols", "Warper", "Daggers", "Scepter", "Exogun", "Revolver", "Uzi", "Glass Cannon", "Handgun"}, default = "Handgun", callback = function(v)
+    chosenWeapons.Secondary = v
+end})
+
+loadouttab:addDropdown({name = "Melee", flag = "AutoSelectMelee", items = {"Fists", "Scythe", "Battle Axe", "Trowel", "Riot Shield", "Glast Shard", "Knife", "Chainsaw", "Katana"}, default = "Fists", callback = function(v)
+    chosenWeapons.Melee = v
+end})
+
+loadouttab:addDropdown({name = "Utility", flag = "AutoSelectUtility", items = {"Medkit", "Flashbang", "Elixir", "Subspace Tripmine", "War Horn", "Grenade", "Warpstone", "Molotov", "Freeze Ray", "RNG Dice", "Smoke Grenade", "Jump Pad", "Satchel"}, default = "Grenade", callback = function(v)
+    chosenWeapons.Utility = v
+end})
+
+runservice.Heartbeat:Connect(function()
+    if AutoLoadSelect then
+        rs.Remotes.Replication.Fighter.PickWeapons:FireServer({chosenWeapons.Primary, chosenWeapons.Secondary, chosenWeapons.Melee, chosenWeapons.Utility})
+        task.wait(2)
+    end
+end)

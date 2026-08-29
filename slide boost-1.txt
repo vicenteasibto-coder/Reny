@@ -1,0 +1,7 @@
+local mech = require(game:GetService("Players").LocalPlayer.PlayerScripts.Controllers.MechanicsController)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if mech.IsSliding then
+        mech._sliding_velocity.Velocity = mech._sliding_velocity.Velocity.Unit * 100 -- uh u can change the speed here
+    end
+end)
