@@ -1,0 +1,1638 @@
+-- Generated from dsc.gg/6vms | Toolbox Hub (Instant Grab & Smooth Flight Fix)
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+
+-- Safe Module Requires & Network Map
+local EggCmds, Ragdoll, Network, NM, PlotCmds, GEP, GCP, RGSR, SPP, GuardsD, AreasD, SlotId
+local Save, Constants, Bases, Treadmills, Trails
+local PlotsNet, TreadmillsNet, TrailsNet
+pcall(function() EggCmds = require(ReplicatedStorage.Library.Client.EggCmds) end)
+pcall(function() Ragdoll = require(ReplicatedStorage.Library.Modules.Ragdoll) end)
+pcall(function() Network = require(ReplicatedStorage.Library.Client.Network) end)
+pcall(function() NM = (Network and Network.NET_MAP) or (Constants and Constants.NETWORK_MAP) end)
+pcall(function() PlotCmds = require(ReplicatedStorage.Library.Client.PlotCmds) end)
+pcall(function() GEP = require(ReplicatedStorage.Library.Modules.GuardAreas.GuardEscapePrediction) end)
+pcall(function() GCP = require(ReplicatedStorage.Library.Modules.GuardAreas.GuardChasePolicy) end)
+pcall(function() RGSR = require(ReplicatedStorage.Library.Functions.ResolveGuardSpeedRequirement) end)
+pcall(function() SPP = require(ReplicatedStorage.Library.Client.SpeedPowerProjection) end)
+pcall(function() GuardsD = require(ReplicatedStorage.Directory.Guards) end)
+pcall(function() AreasD = require(ReplicatedStorage.Directory.Areas) end)
+pcall(function() SlotId = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity) end)
+
+pcall(function() Save = require(ReplicatedStorage.Library.Client.Save) end)
+pcall(function() Constants = require(ReplicatedStorage.Library.Globals.Constants) end)
+pcall(function() Bases = require(ReplicatedStorage.Directory.Bases) end)
+pcall(function() Treadmills = require(ReplicatedStorage.Directory.Treadmills) end)
+pcall(function() Trails = require(ReplicatedStorage.Directory.Trails) end)
+
+pcall(function() PlotsNet = Constants and Constants.NETWORK_MAP and Constants.NETWORK_MAP.Plots end)
+pcall(function() TreadmillsNet = Constants and Constants.NETWORK_MAP and Constants.NETWORK_MAP.Treadmills end)
+pcall(function() TrailsNet = Constants and Constants.NETWORK_MAP and Constants.NETWORK_MAP.Trails end)
+
+-- Initial Ragdoll Module Override
+if Ragdoll then
+    pcall(function()
+        Ragdoll.Ragdoll = function() end
+        Ragdoll.IsRagdolled = function() return false end
+        Ragdoll.NpcRagdoll = function() end
+    end)
+end
+
+ProximityPromptService.PromptShown:Connect(function(prompt)
+    prompt.HoldDuration = 0
+end)
+
+-- Obsidian UI Setup
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/Library.lua"))()
+
+local Window = Library:CreateWindow({
+    Title = "Toolbox Hub",
+    Footer = "Steal an Egg",
+    Center = true,
+    AutoShow = true,
+    ShowMobileButtons = false
+})
+
+-- Custom UI Toggle Button (unvis and vi button)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = game:GetService("HttpService"):GenerateGUID(false)
+ScreenGui.ResetOnSpawn = false
+local guiSuccess = pcall(function()
+    ScreenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+end)
+if not guiSuccess or not ScreenGui.Parent then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 110, 0, 40)
+ToggleButton.Position = UDim2.new(0.02, 0, 0.1, 0)
+ToggleButton.Text = "Toolbox Hub"
+ToggleButton.TextSize = 12
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.AutoButtonColor = false
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+ToggleButton.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.Parent = ToggleButton
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(40, 40, 40)
+ToggleStroke.Thickness = 1.5
+ToggleStroke.Parent = ToggleButton
+
+ToggleButton.MouseButton1Click:Connect(function()
+    Library:Toggle()
+end)
+
+-- Mobile Draggable Circles (Touch Fixed)
+local mobileButtons = {}
+local function makeFloatingCircle(name, startPos, callback, isToggle)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 50, 0, 50)
+    btn.Position = startPos
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 9
+    btn.RichText = true
+    btn.Text = name .. (isToggle and '\n<font color="#ff4444">[OFF]</font>' or "")
+    btn.Active = true
+    btn.Parent = ScreenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = btn
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 2
+    stroke.Color = Color3.fromRGB(100, 100, 100)
+    stroke.Parent = btn
+    
+    local dragging = false
+    local dragStart, startPosVec
+    local state = false
+    
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPosVec = btn.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            btn.Position = UDim2.new(
+                startPosVec.X.Scale, startPosVec.X.Offset + delta.X,
+                startPosVec.Y.Scale, startPosVec.Y.Offset + delta.Y
+            )
+        end
+    end)
+    
+    btn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if not dragging then return end
+            dragging = false
+            local delta = (input.Position - dragStart).Magnitude
+            if delta < 10 then -- Tap detected
+                if isToggle then
+                    state = not state
+                    stroke.Color = state and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(100, 100, 100)
+                    btn.Text = name .. "\n" .. (state and '<font color="#44ff44">[ON]</font>' or '<font color="#ff4444">[OFF]</font>')
+                    callback(state)
+                else
+                    stroke.Color = Color3.fromRGB(50, 255, 50)
+                    task.delay(0.2, function() pcall(function() stroke.Color = Color3.fromRGB(100, 100, 100) end) end)
+                    callback()
+                end
+            end
+        end
+    end)
+    table.insert(mobileButtons, btn)
+    return btn
+end
+
+local MainTab = Window:AddTab({ Name = "Main" })
+local AutomationTab = Window:AddTab({ Name = "Automation" })
+local UpgradesTab = Window:AddTab({ Name = "Upgrades" })
+local MiscTab = Window:AddTab({ Name = "Misc" })
+
+-- State Variables
+local antiRagdollEnabled = false
+local tpWalkEnabled = false
+local tpWalkSpeedValue = 650
+local eggEspEnabled = false
+local eggAutoFarmEnabled = false
+local farmHeaviestInTier = false
+local autoFarmSpeedValue = 850
+local espRenderDistance = 1000
+local targetTierName = "Titan Temple"
+local autoHatchEnabled = false
+local autoEquipBestEnabled = false
+local autoClaimEnabled = false
+local fullbrightEnabled = false
+local flyEnabled = false
+local flySpeedValue = 550
+local maxZoomEnabled = false
+local timeFreezeEnabled = false
+local antiLagEnabled = false
+local antiAfkEnabled = false
+local fov120Enabled = false
+local activeTween = nil
+local idledConnection = nil
+local bypassMethod = "V2" -- "V1" or "V2"
+
+local autoPenEnabled = true
+local autoTreadmillEnabled = true
+local autoRunEnabled = true
+local autoBuyTrailsEnabled = true
+local antiTrapEnabled = true
+
+local cachedEggs = {}
+local droppedEggMemory = {}
+local lastHeldEgg = nil
+
+-- Character Egg Holding Tracker (ensures dropped eggs remember real name & size)
+task.spawn(function()
+    while true do
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char then
+                for _, obj in ipairs(char:GetChildren()) do
+                    if obj:IsA("Model") or obj:IsA("Tool") then
+                        local lName = string.lower(obj.Name)
+                        if lName:find("egg") or lName:find("swan") or lName:find("pet") or obj:FindFirstChild("SmartPromptPart") or obj:FindFirstChildWhichIsA("ProximityPrompt") then
+                            local size = obj:IsA("Model") and obj:GetExtentsSize() or Vector3.new(2.5, 3.5, 2.5)
+                            for _, p in ipairs(obj:GetDescendants()) do
+                                if p:IsA("BasePart") and p.Size.Magnitude > size.Magnitude then
+                                    size = p.Size
+                                end
+                            end
+                            local petName = obj.Name
+                            if petName == "Model" or petName == "Tool" or petName == "Egg" or petName == "SmartPromptPart" then
+                                local root = char:FindFirstChild("HumanoidRootPart")
+                                if root then
+                                    local zName = "Forest"
+                                    local wx = root.Position.X
+                                    if wx >= 647 and wx < 792 then zName = "Lake"
+                                    elseif wx >= 792 and wx < 1004 then zName = "Desert"
+                                    elseif wx >= 1004 and wx < 1240 then zName = "Jungle"
+                                    elseif wx >= 1240 and wx < 1565 then zName = "Snow"
+                                    elseif wx >= 1565 and wx < 1950 then zName = "Volcano"
+                                    elseif wx >= 1950 and wx < 2380 then zName = "Abyss Ocean"
+                                    elseif wx >= 2380 and wx < 2885 then zName = "Prehistoric"
+                                    elseif wx >= 2885 and wx < 3527 then zName = "Cosmic"
+                                    elseif wx >= 3527 and wx < 4400 then zName = "Cherry Blossom"
+                                    elseif wx >= 4400 then zName = "Titan Temple"
+                                    end
+                                    petName = zName .. " Egg"
+                                end
+                            end
+                            lastHeldEgg = {
+                                name = petName,
+                                size = size,
+                                area = "Carried",
+                                time = os.clock()
+                            }
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(0.4)
+    end
+end)
+
+local function stealHeaviestEggFunc()
+    local char = LocalPlayer.Character
+    local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if not rootPart then return end
+    
+    local heaviest = nil
+    local maxVol = -1
+    
+    for _, r in ipairs(cachedEggs) do
+        local sz = r.size or Vector3.zero
+        local vol = sz.X * sz.Y * sz.Z
+        if vol > maxVol then
+            maxVol = vol
+            heaviest = r
+        end
+    end
+    
+    if heaviest then
+        task.spawn(function()
+            local originalPos = rootPart.CFrame
+            if hum then hum.PlatformStand = true end
+            local flightSpeed = autoFarmSpeedValue
+            
+            local targetPos = heaviest.cf + Vector3.new(0, 1.2, 0)
+            local distToEgg = (rootPart.Position - targetPos.Position).Magnitude
+            
+            local timeToEgg = math.max(distToEgg / flightSpeed, 0.02)
+            
+            local antiGrav = Instance.new("BodyVelocity")
+            antiGrav.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            antiGrav.Velocity = Vector3.zero
+            antiGrav.Parent = rootPart
+            
+            -- 1. Tween directly to target egg
+            local tweenTo = TweenService:Create(rootPart, TweenInfo.new(timeToEgg, Enum.EasingStyle.Linear), { CFrame = targetPos })
+            tweenTo:Play()
+            task.wait(timeToEgg)
+            
+            if rootPart then 
+                rootPart.AssemblyLinearVelocity = Vector3.zero 
+            end
+            
+            -- REQUIRED PAUSE to let server recognize our position (prevents anti-cheat kicks)
+            task.wait(0.15)
+            
+            -- 2. At egg: Fire prompt normally
+            local targetPrompt = heaviest.prompt
+            if not targetPrompt or not targetPrompt.Parent then
+                local minD = 3.5
+                for _, p in ipairs(Workspace:GetDescendants()) do
+                    if p:IsA("ProximityPrompt") and p.Enabled and p.Parent and p.Parent:IsA("BasePart") then
+                        local d = (p.Parent.Position - heaviest.pos).Magnitude
+                        if d < minD then
+                            minD = d
+                            targetPrompt = p
+                        end
+                    end
+                end
+            end
+            
+            if targetPrompt and targetPrompt.Parent and targetPrompt.Enabled then
+                pcall(function() fireproximityprompt(targetPrompt, 0) end)
+                task.wait(0.1)
+                pcall(function() fireproximityprompt(targetPrompt, 1) end)
+            end
+            
+            if not heaviest.isPhysical then
+                task.spawn(function()
+                    if Network and NM and NM.Eggs and NM.Eggs.BUY then
+                        pcall(function() Network.Invoke(NM.Eggs.BUY, heaviest.uid, 1) end)
+                    end
+                    if Network and Network.Invoke then
+                        pcall(function() Network.Invoke("BUY", heaviest.uid, 1) end)
+                        pcall(function() Network.Invoke("REQUEST_BUY", heaviest.uid, 1) end)
+                    end
+                end)
+            end
+            task.wait(0.1)
+            
+            lastHeldEgg = {
+                name = heaviest.cat,
+                size = heaviest.size,
+                area = heaviest.area,
+                time = os.clock()
+            }
+            
+            -- 3. Tween straight back fast
+            if rootPart then
+                local distBack = (rootPart.Position - originalPos.Position).Magnitude
+                local timeBack = math.max(distBack / flightSpeed, 0.02)
+                local tweenBack = TweenService:Create(rootPart, TweenInfo.new(timeBack, Enum.EasingStyle.Linear), { CFrame = originalPos })
+                tweenBack:Play()
+                task.wait(timeBack)
+            end
+            
+            if antiGrav then antiGrav:Destroy() end
+            
+            if rootPart then
+                rootPart.AssemblyLinearVelocity = Vector3.zero
+                rootPart.AssemblyAngularVelocity = Vector3.zero
+            end
+            
+            if hum and not flyEnabled and not antiRagdollEnabled then
+                hum.PlatformStand = false
+                pcall(function() hum:ChangeState(Enum.HumanoidStateType.Landed) end)
+            end
+        end)
+    end
+end
+
+-- New Anti-Cheat Bypass (Method 2)
+local newBypassUtility = {
+    RunService = game:GetService("RunService"),
+    Players = game:GetService("Players")
+}
+
+newBypassUtility.collectgarbage = function()
+    local s, r = pcall(function(...)
+        return getgc()
+    end)
+    if s and r then
+        return r    
+    end
+    return warn("failed to get garbage: "..tostring(r))
+end
+
+newBypassUtility.safehook = function(f, c)
+    local s, r = pcall(function(...)
+        return hookfunction(f, newlclosure(c))
+    end)
+    if s and r then
+        return r    
+    end
+    return warn("failed to hook function: "..tostring(r))
+end
+
+function newBypassUtility:findfunction(nups, linedefined)
+    local s, r = pcall(function(...)
+        for _, f in next, self.collectgarbage() do
+            if typeof(f) == 'function' and islclosure(f) then
+                local upvs = debug.getupvalues(f)
+                local line = debug.info(f, "l")
+
+                if upvs and #upvs == nups and line == linedefined then
+                    if nups == 10 then
+                        local t = debug.getupvalue(f, 3)
+                        if typeof(t) == "table" and rawget(t, "Humanoid") then
+                            return f
+                        end
+                    else
+                        return f
+                    end
+                end
+            end
+        end
+
+        return nil
+    end)
+
+    if s and r then
+        return r
+    end
+
+    return nil
+end
+
+function newBypassUtility:initBypass()
+    self.LocalPlayer = self.Players.LocalPlayer
+    if not self.LocalPlayer then
+        return warn("failed to get localplayer")
+    end
+
+    if not getgc then
+        return warn("UNSUPPORT EXECUTOR MISSING getgc")
+    end
+
+    if not hookfunction then
+        return warn("UNSUPPORT EXECUTOR MISSING hookfunction")
+    end
+
+    if not islclosure then
+        return warn("UNSUPPORT EXECUTOR MISSING islclosure")
+    end
+
+    local func3 = self:findfunction(19, 3)
+
+    if not func3 then
+        return warn("failed to get function 3")
+    end
+
+    local v7 = debug.getupvalue(func3, 2)
+    if not v7 then
+        return warn("failed to get v7")
+    end
+
+    local hookedfunc3; hookedfunc3 = self.safehook(v7, function(p1, p2)
+        if p2 and typeof(p2) == "table" then
+            setmetatable(p2, {})
+        end
+        return hookedfunc3(p1,p2)
+    end)
+
+    return
+end
+
+-- Old Anti-Cheat Bypass (Method 1)
+local function oldBypassAntiCheatFunc()
+    local character = LocalPlayer.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            local clone = humanoid:Clone()
+            clone.Parent = character
+            humanoid:Destroy()
+            task.wait(0.1)
+            if character:FindFirstChild("HumanoidRootPart") then
+                workspace.CurrentCamera.CameraSubject = character:FindFirstChildOfClass("Humanoid") or character.HumanoidRootPart
+            end
+        end
+    end
+end
+
+-- New Anti-Cheat Bypass (Method 2)
+local function newBypassAntiCheatFunc()
+    newBypassUtility:initBypass()
+end
+
+-- Main Bypass Function (Uses Selected Method)
+local function bypassAntiCheatFunc()
+    if bypassMethod == "V2" then
+        newBypassAntiCheatFunc()
+    else
+        oldBypassAntiCheatFunc()
+    end
+end
+
+local function goToMainStandFunc()
+    local character = LocalPlayer.Character
+    if not character then return end
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    local hum = character:FindFirstChildOfClass("Humanoid")
+    if not rootPart then return end
+    if activeTween then activeTween:Cancel() end
+    
+    local targetCFrame = CFrame.new(544.577637, 92.0762939, -364.869049, -1, 0, 0, 0, 1, 0, 0, 0, -1)
+    local dist = (rootPart.Position - targetCFrame.Position).Magnitude
+    local travelTime = math.max(dist / 350, 0.1)
+    
+    activeTween = TweenService:Create(rootPart, TweenInfo.new(travelTime, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {CFrame = targetCFrame})
+    activeTween.Completed:Connect(function() 
+        if hum then 
+            pcall(function() 
+                hum:ChangeState(Enum.HumanoidStateType.Landed) 
+                hum.PlatformStand = false 
+            end) 
+        end
+    end)
+    activeTween:Play()
+end
+
+-- Create Mobile Circles
+makeFloatingCircle("Farm", UDim2.new(0.02, 0, 0.20, 0), function(v) eggAutoFarmEnabled = v end, true)
+makeFloatingCircle("Fly", UDim2.new(0.02, 0, 0.33, 0), function(v) flyEnabled = v end, true)
+makeFloatingCircle("TP Walk", UDim2.new(0.02, 0, 0.46, 0), function(v) tpWalkEnabled = v end, true)
+makeFloatingCircle("Ragdoll", UDim2.new(0.02, 0, 0.59, 0), function(v) antiRagdollEnabled = v end, true)
+makeFloatingCircle("Bypass AC", UDim2.new(0.85, 0, 0.33, 0), function() bypassAntiCheatFunc() end, false)
+makeFloatingCircle("Main Stand", UDim2.new(0.85, 0, 0.46, 0), function() goToMainStandFunc() end, false)
+
+
+-- Main Tab
+local MainGroup = MainTab:AddLeftGroupbox("Main Features")
+MainGroup:AddDropdown("BypassMethod", { 
+    Text = "Anti-Cheat Bypass Method", 
+    Default = "V2", 
+    Values = {"V1", "V2"}, 
+    Callback = function(v) bypassMethod = v end 
+})
+MainGroup:AddButton({ Text = "Bypass Anti-cheat", Func = bypassAntiCheatFunc })
+
+MainGroup:AddButton({ Text = "Respawn Character", Func = function()
+    local character = LocalPlayer.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid.Health = 0 end
+    end
+end })
+
+local MoveGroup = MainTab:AddLeftGroupbox("Move to Stand")
+MoveGroup:AddButton({ Text = "Go To Main Stand", Func = goToMainStandFunc })
+MoveGroup:AddButton({ Text = "Stop Movement", Func = function()
+    if activeTween then
+        activeTween:Cancel()
+        activeTween = nil
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.PlatformStand = false end
+    end
+end })
+
+local TPGroup = MainTab:AddRightGroupbox("Movement Modifiers")
+TPGroup:AddToggle("AntiRagdoll", { Text = "Anti-Ragdoll", Default = false, Callback = function(v) antiRagdollEnabled = v end })
+TPGroup:AddToggle("TPWalk", { Text = "TP Walk", Default = false, Callback = function(v) tpWalkEnabled = v end })
+TPGroup:AddSlider("TPSpeed", { Text = "TP Walk Speed", Default = 650, Min = 1, Max = 1000, Rounding = 0, Callback = function(v) tpWalkSpeedValue = v end })
+
+
+-- Automation Tab
+local AutoGroup = AutomationTab:AddLeftGroupbox("Auto Farm Eggs")
+AutoGroup:AddToggle("EggESP", { Text = "Egg ESP", Default = false, Callback = function(v) eggEspEnabled = v end })
+AutoGroup:AddSlider("EspDistance", { Text = "ESP Render Distance", Default = 1000, Min = 100, Max = 5000, Rounding = 0, Callback = function(v) espRenderDistance = v end })
+AutoGroup:AddButton({ Text = "Steal Heaviest Egg", Func = stealHeaviestEggFunc })
+AutoGroup:AddToggle("AutoFarm", { Text = "Auto Farm Eggs", Default = false, Callback = function(v) eggAutoFarmEnabled = v end })
+AutoGroup:AddToggle("FarmHeaviest", { Text = "Farm Heaviest In Tier", Default = false, Callback = function(v) farmHeaviestInTier = v end })
+AutoGroup:AddSlider("FarmSpeed", { Text = "Auto Farm Speed", Default = 850, Min = 1, Max = 850, Rounding = 0, Callback = function(v) autoFarmSpeedValue = v end })
+AutoGroup:AddDropdown("FarmTier", { 
+    Text = "Target Farm Tier", 
+    Default = "Titan Temple", 
+    Values = {"Forest", "Lake", "Desert", "Jungle", "Snow", "Volcano", "Abyss Ocean", "Prehistoric", "Cosmic", "Cherry Blossom", "Titan Temple"}, 
+    Callback = function(v) targetTierName = v end 
+})
+
+local RewardsGroup = AutomationTab:AddRightGroupbox("Auto Rewards")
+RewardsGroup:AddToggle("AutoHatch", { Text = "Auto Hatch", Default = false, Callback = function(v) autoHatchEnabled = v end })
+RewardsGroup:AddToggle("AutoEquip", { Text = "Auto Equip Best", Default = false, Callback = function(v) autoEquipBestEnabled = v end })
+RewardsGroup:AddToggle("AutoClaim", { Text = "Auto Claim", Default = false, Callback = function(v) autoClaimEnabled = v end })
+
+-- Upgrades Tab
+local UpgradesGroup = UpgradesTab:AddLeftGroupbox("Auto Upgrades")
+UpgradesGroup:AddToggle("AutoPen", { Text = "Auto Upgrade Pen", Default = true, Callback = function(v) autoPenEnabled = v end })
+UpgradesGroup:AddToggle("AutoTreadmill", { Text = "Auto Upgrade Treadmill", Default = true, Callback = function(v) autoTreadmillEnabled = v end })
+UpgradesGroup:AddToggle("AutoBuyTrails", { Text = "Auto Buy Trails", Default = true, Callback = function(v) autoBuyTrailsEnabled = v end })
+
+local RunGroup = UpgradesTab:AddRightGroupbox("Movement")
+RunGroup:AddToggle("AutoRun", { Text = "Auto Run Treadmill", Default = true, Callback = function(v) autoRunEnabled = v end })
+
+
+-- Misc Tab
+local VisualsGroup = MiscTab:AddLeftGroupbox("Visuals & Render")
+VisualsGroup:AddToggle("Fullbright", { Text = "Fullbright", Default = false, Callback = function(v) 
+    fullbrightEnabled = v 
+    Lighting.Brightness = fullbrightEnabled and 3 or 1
+    Lighting.ClockTime = fullbrightEnabled and 14 or 14
+    Lighting.GlobalShadows = not fullbrightEnabled
+end })
+VisualsGroup:AddToggle("MaxZoom", { Text = "Max Zoom Distance", Default = false, Callback = function(v) 
+    maxZoomEnabled = v 
+    LocalPlayer.CameraMaxZoomDistance = maxZoomEnabled and 9999 or 400
+end })
+VisualsGroup:AddToggle("TimeFreeze", { Text = "Time Freeze (Noon)", Default = false, Callback = function(v) timeFreezeEnabled = v end })
+VisualsGroup:AddToggle("AntiLag", { Text = "Anti-Lag", Default = false, Callback = function(v) 
+    antiLagEnabled = v 
+    pcall(function()
+        if antiLagEnabled then
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 999999
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
+                    obj.Enabled = false
+                elseif obj:IsA("BasePart") then
+                    obj.Material = Enum.Material.SmoothPlastic
+                    obj.Reflectance = 0
+                end
+            end
+        else
+            Lighting.GlobalShadows = true
+            Lighting.FogEnd = 100000
+        end
+    end)
+end })
+VisualsGroup:AddToggle("FOV120", { Text = "120 FOV", Default = false, Callback = function(v) 
+    fov120Enabled = v 
+    if not fov120Enabled then
+        local cam = Workspace.CurrentCamera
+        if cam then cam.FieldOfView = 70 end
+    end
+end })
+
+local UtilsGroup = MiscTab:AddRightGroupbox("Utilities")
+UtilsGroup:AddToggle("ShowMobileToggles", { Text = "Show Mobile Toggles", Default = true, Callback = function(v) 
+    for _, btn in ipairs(mobileButtons) do
+        if btn then btn.Visible = v end
+    end
+end })
+UtilsGroup:AddToggle("AntiTrap", { Text = "Anti-Trap", Default = true, Callback = function(v) antiTrapEnabled = v end })
+UtilsGroup:AddToggle("NormalFly", { Text = "Normal Fly", Default = false, Callback = function(v) flyEnabled = v end })
+UtilsGroup:AddSlider("FlySpeed", { Text = "Fly Speed", Default = 550, Min = 1, Max = 1000, Rounding = 0, Callback = function(v) flySpeedValue = v end })
+UtilsGroup:AddToggle("AntiAFK", { Text = "Anti-AFK", Default = false, Callback = function(v) 
+    antiAfkEnabled = v 
+    if antiAfkEnabled then
+        if getconnections then
+            for _, conn in pairs(getconnections(LocalPlayer.Idled)) do
+                conn:Disable()
+            end
+        else
+            if not idledConnection then
+                idledConnection = LocalPlayer.Idled:Connect(function()
+                    pcall(function()
+                        local vu = game:GetService("VirtualUser")
+                        vu:CaptureController()
+                        vu:ClickButton2(Vector2.new())
+                    end)
+                end)
+            end
+        end
+    else
+        if getconnections then
+            for _, conn in pairs(getconnections(LocalPlayer.Idled)) do
+                conn:Enable()
+            end
+        end
+        if idledConnection then
+            idledConnection:Disconnect()
+            idledConnection = nil
+        end
+    end
+end })
+
+-- Core Logic Below
+local EXIT_DIR = Vector3.new(-1,0,0)
+local AREA = {}
+pcall(function()
+    EXIT_DIR = -Workspace.__OBJECTS.Areas.SeparationLine.CFrame.LookVector
+end)
+local folder = Workspace:FindFirstChild("__OBJECTS")
+folder = folder and folder:FindFirstChild("Areas")
+folder = folder and folder:FindFirstChild("GuardAreas")
+if folder and GuardsD and AreasD and GCP then
+    for _, a in ipairs(folder:GetChildren()) do
+        pcall(function()
+            local d = GuardsD.Directory[AreasD.Directory[a.Name].GuardId]
+            local rec = {
+                cf = a.Bounds.CFrame,
+                size = a.Bounds.Size,
+                guardPos = a.Guard:GetPivot().Position,
+                speed = d.WalkSpeed,
+                radius = d.FlatRadius,
+                hit = GCP.ResolveHitDistance(d.HitDistance),
+                reqSP = nil,
+            }
+            if GEP and RGSR then
+                pcall(function()
+                    local exitPos = a.ClosestExitPoint.Position
+                    rec.reqSP = RGSR({
+                        BaseGuardWalkSpeed = rec.speed,
+                        ExitDirection = EXIT_DIR,
+                        ExitDistance = GEP.ResolveExitDistance(rec.cf, rec.size, exitPos, EXIT_DIR),
+                        FlatRadius = rec.radius,
+                        GuardStartPosition = rec.guardPos,
+                        HitDistance = rec.hit,
+                        PlayerStartPosition = exitPos,
+                    })
+                end)
+            end
+            AREA[a.Name] = rec
+        end)
+    end
+end
+
+-- ------------------------------------------------------------------------------
+-- AREA ZONES & LOOT INFO (Egg ESP v4)
+-- ------------------------------------------------------------------------------
+local MAX_DISTANCE = 200
+local AREA_ZONES = {
+    { minX = 553,  maxX = 647,  name = "Forest"          },
+    { minX = 647,  maxX = 792,  name = "Lake"            },
+    { minX = 792,  maxX = 1004, name = "Desert"          },
+    { minX = 1004, maxX = 1240, name = "Jungle"          },
+    { minX = 1240, maxX = 1565, name = "Snow"            },
+    { minX = 1565, maxX = 1950, name = "Volcano"         },
+    { minX = 1950, maxX = 2380, name = "Abyss Ocean"     },
+    { minX = 2380, maxX = 2885, name = "Prehistoric"     },
+    { minX = 2885, maxX = 3527, name = "Cosmic"          },
+    { minX = 3527, maxX = 4400, name = "Cherry Blossom"  },
+    { minX = 4400, maxX = 999999, name = "Titan Temple"    },
+}
+
+local LOOT_INFO = {
+    ["Forest"]         = { rarity = "Common",    rarityColor = Color3.fromRGB(180, 180, 180), areaColor = Color3.fromRGB(80, 200, 80) },
+    ["Lake"]           = { rarity = "Uncommon",  rarityColor = Color3.fromRGB(0, 255, 0),     areaColor = Color3.fromRGB(80, 160, 255) },
+    ["Desert"]         = { rarity = "Rare",      rarityColor = Color3.fromRGB(25, 144, 255),  areaColor = Color3.fromRGB(240, 190, 60) },
+    ["Jungle"]         = { rarity = "Epic",      rarityColor = Color3.fromRGB(196, 2, 255),   areaColor = Color3.fromRGB(50, 180, 50) },
+    ["Snow"]           = { rarity = "Legendary", rarityColor = Color3.fromRGB(255, 133, 34),  areaColor = Color3.fromRGB(180, 230, 255) },
+    ["Volcano"]        = { rarity = "Mythic",    rarityColor = Color3.fromRGB(255, 43, 100),  areaColor = Color3.fromRGB(255, 90, 30) },
+    ["Abyss Ocean"]    = { rarity = "Cosmic",    rarityColor = Color3.fromRGB(65, 0, 170),    areaColor = Color3.fromRGB(30, 80, 200) },
+    ["Prehistoric"]    = { rarity = "Secret",    rarityColor = Color3.fromRGB(46, 46, 46),    areaColor = Color3.fromRGB(180, 130, 60) },
+    ["Cosmic"]         = { rarity = "Eternal",   rarityColor = Color3.fromRGB(255, 30, 240),  areaColor = Color3.fromRGB(160, 80, 255) },
+    ["Cherry Blossom"] = { rarity = "Divine",    rarityColor = Color3.fromRGB(251, 255, 0),  areaColor = Color3.fromRGB(255, 160, 200) },
+    ["Titan Temple"]   = { rarity = "Titan",     rarityColor = Color3.fromRGB(255, 215, 0),  areaColor = Color3.fromRGB(255, 170, 0) },
+}
+
+local function getAreaName(worldX)
+    for _, zone in ipairs(AREA_ZONES) do
+        if worldX >= zone.minX and worldX < zone.maxX then
+            return zone.name
+        end
+    end
+    return "Forest"
+end
+
+local function getLootInfo(areaName)
+    return LOOT_INFO[areaName] or LOOT_INFO["Forest"]
+end
+
+task.spawn(function()
+    while true do
+        local eggs = {}
+        
+        -- NEW METHOD: AreaEggSlotsClient (Fixes Auto Farm)
+        local container = Workspace:FindFirstChild("AreaEggSlotsClient")
+        if container then
+            for _, slot in ipairs(container:GetChildren()) do
+                if slot:IsA("Model") then
+                    local hitbox = slot:FindFirstChild("Hitbox") or slot:FindFirstChildWhichIsA("BasePart")
+                    if hitbox then
+                        local uid = slot.Name
+                        local areaName = getAreaName(hitbox.Position.X)
+                        if slot.Name:find("FirstAreaEgg") then
+                            local slotArea = slot.Name:match("_([A-Za-z ]+):Slot")
+                            if slotArea then areaName = slotArea end
+                        end
+                        
+                        local petName = areaName .. " Egg"
+                        for _, child in ipairs(slot:GetChildren()) do
+                            if child:IsA("Model") then
+                                local lowerName = string.lower(child.Name)
+                                if lowerName ~= "hitbox" and lowerName ~= "nest" and lowerName ~= "egg" then
+                                    petName = child.Name
+                                    if not string.find(lowerName, string.lower(areaName)) then
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                        
+                        eggs[#eggs+1] = {
+                            uid = uid, cf = hitbox.CFrame, pos = hitbox.Position, size = hitbox.Size,
+                            area = areaName, cat = petName, nest = slot, isPhysical = false
+                        }
+                    end
+                end
+            end
+        end
+        
+        -- FALLBACK FOR ANY LINGERING RECORDS
+        pcall(function()
+            local snap = EggCmds and EggCmds.GetAreaEggSnapshot and EggCmds.GetAreaEggSnapshot()
+            if snap and snap.Records then
+                for _, r in ipairs(snap.Records) do
+                    if r.State ~= "Equipped" and r.State ~= "Hatched" and r.State ~= "Claimed" and r.State ~= "Incubating" then
+                        local ePos = r.CFrame and r.CFrame.Position or (r.BoundsCFrame and r.BoundsCFrame.Position)
+                        if ePos then
+                            local isDupe = false
+                            for _, e in ipairs(eggs) do
+                                if (e.pos - ePos).Magnitude < 3 then isDupe = true break end
+                            end
+                            if not isDupe then
+                                eggs[#eggs+1] = {
+                                    uid = r.Uid, cf = r.CFrame or r.BoundsCFrame, pos = ePos, size = r.Size or r.BoundsSize,
+                                    area = r.AreaId, cat = r.AssetCategory, nest = r.NestId, isPhysical = false
+                                }
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+        
+        pcall(function()
+            for _, prompt in ipairs(Workspace:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") and prompt.Enabled then
+                    local action = string.lower(prompt.ActionText)
+                    local objTxt = string.lower(prompt.ObjectText)
+                    local parentName = string.lower(prompt.Parent and prompt.Parent.Name or "")
+                    
+                    if action:find("grab") or action:find("steal") or action:find("take") or action:find("pick") or action:find("collect") or objTxt:find("egg") or parentName:find("egg") or parentName:find("drop") then
+                        local part = prompt.Parent
+                        if part and part:IsA("BasePart") then
+                            local isDupe = false
+                            for _, e in ipairs(eggs) do
+                                if (e.pos - part.Position).Magnitude < 3 then
+                                    isDupe = true
+                                    break
+                                end
+                            end
+                            
+                            if not isDupe then
+                                local promptId = tostring(prompt:GetDebugId())
+                                
+                                local function isValidPetName(n)
+                                    if not n then return false end
+                                    local ln = string.lower(n)
+                                    if ln == "egg" or ln == "part" or ln == "meshpart" or ln == "smartpromptpart" or ln == "model" or ln == "workspace" or ln == "hitbox" then return false end
+                                    -- Ignore UUIDs (long hex strings with dashes)
+                                    if #n > 20 and n:match("%-") and n:match("%w") then return false end
+                                    return true
+                                end
+                                
+                                -- 2. RESOLVE REAL NAME (Prevent resetting to "SmartPromptPart" or generic "Egg")
+                                local petName = nil
+                                
+                                -- A: Memory cache from previous detection
+                                if droppedEggMemory[promptId] then
+                                    petName = droppedEggMemory[promptId].name
+                                end
+                                
+                                -- B: If I just dropped it recently, grab it from lastHeldEgg
+                                if not petName or not isValidPetName(petName) then
+                                    if lastHeldEgg and (os.clock() - lastHeldEgg.time) < 1.0 then
+                                        local dist = (lastHeldEgg.size.Magnitude - part.Size.Magnitude)
+                                        if math.abs(dist) < 5 then
+                                            petName = lastHeldEgg.name
+                                        end
+                                    end
+                                end
+                                
+                                -- C: Hierarchy / Billboard fallback
+                                if not petName or not isValidPetName(petName) then
+                                    if prompt.ObjectText and isValidPetName(prompt.ObjectText) then
+                                        petName = prompt.ObjectText
+                                    elseif part.Parent and part.Parent:IsA("Model") and isValidPetName(part.Parent.Name) then
+                                        petName = part.Parent.Name
+                                    elseif isValidPetName(part.Name) then
+                                        petName = part.Name
+                                    else
+                                        local bb = part:FindFirstChildOfClass("BillboardGui") or (part.Parent and part.Parent:FindFirstChildOfClass("BillboardGui"))
+                                        if bb then
+                                            local tl = bb:FindFirstChildOfClass("TextLabel")
+                                            if tl and tl.Text ~= "" and isValidPetName(tl.Text) then petName = tl.Text end
+                                        end
+                                        if not petName or not isValidPetName(petName) then
+                                            if part.Parent and part.Parent.Parent and isValidPetName(part.Parent.Parent.Name) then
+                                                petName = part.Parent.Parent.Name
+                                            end
+                                        end
+                                    end
+                                end
+                                
+                                if not petName or not isValidPetName(petName) then petName = "Egg" end
+                                
+                                -- Save to memory so it doesn't get lost
+                                droppedEggMemory[promptId] = { name = petName, size = part.Size }
+                                
+                                eggs[#eggs+1] = {
+                                    uid = "Phys_" .. promptId,
+                                    cf = part.CFrame,
+                                    pos = part.Position,
+                                    size = part.Size,
+                                    area = "Dropped",
+                                    cat = petName,
+                                    nest = nil,
+                                    part = part,
+                                    isPhysical = true,
+                                    prompt = prompt
+                                }
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+        
+        cachedEggs = eggs
+        task.wait(0.35)
+    end
+end)
+
+local curSP = 0
+task.spawn(function()
+    while true do
+        if SPP then
+            pcall(function() curSP = SPP.GetSpeedPower() or curSP end)
+        end
+        task.wait(1)
+    end
+end)
+
+local function areaUnlocked(areaId)
+    local A = AREA[areaId]
+    if not A or not A.reqSP then return true end
+    return curSP >= A.reqSP
+end
+
+local function shortNum(n)
+    if not n then return "?" end
+    local a = math.abs(n)
+    if a >= 1e12 then return string.format("%.1fT", n/1e12) end
+    if a >= 1e9  then return string.format("%.1fB", n/1e9)  end
+    if a >= 1e6  then return string.format("%.1fM", n/1e6)  end
+    if a >= 1e3  then return string.format("%.1fK", n/1e3)  end
+    return string.format("%d", n)
+end
+
+-- ------------------------------------------------------------------------------
+-- DRAWING POOL & HIGHLIGHT MANAGER
+-- ------------------------------------------------------------------------------
+local drawingSupported = (typeof(Drawing) ~= "nil" and type(Drawing.new) == "function")
+local eggDrawings = {}
+local eggHighlights = {}
+
+local function createTextLabel()
+    if not drawingSupported then return nil end
+    local text = Drawing.new("Text")
+    text.Font = Drawing.Fonts.UI
+    text.Outline = true
+    text.Center = true
+    text.Visible = false
+    return text
+end
+
+local function getOrCreate(uid)
+    if eggDrawings[uid] then return eggDrawings[uid] end
+
+    local set = {}
+    set.name   = createTextLabel()
+    set.dist   = createTextLabel()
+    set.rarity = createTextLabel()
+
+    eggDrawings[uid] = set
+    return set
+end
+
+local function getOrCreateHighlight(uid, adornee, color)
+    if eggHighlights[uid] then
+        eggHighlights[uid].Adornee = adornee
+        eggHighlights[uid].OutlineColor = color
+        eggHighlights[uid].FillColor = color
+        eggHighlights[uid].Enabled = true
+        return eggHighlights[uid]
+    end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "EggESPOutline"
+    highlight.Adornee = adornee
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.FillTransparency = 0.85
+    highlight.OutlineTransparency = 0
+    highlight.OutlineColor = color
+    highlight.FillColor = color
+    highlight.Parent = adornee
+
+    eggHighlights[uid] = highlight
+    return highlight
+end
+
+local function hideSet(uid)
+    local set = eggDrawings[uid]
+    if set then
+        if set.name then set.name.Visible   = false end
+        if set.dist then set.dist.Visible   = false end
+        if set.rarity then set.rarity.Visible = false end
+    end
+
+    if eggHighlights[uid] then
+        eggHighlights[uid].Enabled = false
+    end
+end
+
+local normalFlyGyro, normalFlyVel = nil, nil
+
+RunService.RenderStepped:Connect(function(dt)
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local rootPart = char:FindFirstChild("HumanoidRootPart")
+        
+        if timeFreezeEnabled then
+            Lighting.ClockTime = 12
+        end
+
+        if fov120Enabled then
+            local cam = Workspace.CurrentCamera
+            if cam then cam.FieldOfView = 120 end
+        end
+
+        if antiRagdollEnabled then
+            if hum then
+                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+                hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+                local st = hum:GetState()
+                if st == Enum.HumanoidStateType.Physics or st == Enum.HumanoidStateType.FallingDown or st == Enum.HumanoidStateType.Ragdoll then
+                    hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+                end
+                hum.PlatformStand = false
+            end
+            
+            for _, v in ipairs(char:GetDescendants()) do
+                if v:IsA("BodyVelocity") or v:IsA("BodyForce") or v:IsA("BodyPosition") or v:IsA("LinearVelocity") or v:IsA("VectorForce") or v:IsA("BodyThrust") then
+                    v:Destroy()
+                elseif v:IsA("Constraint") and v:GetAttribute("RagdollConstraint") then
+                    v:Destroy()
+                elseif v:IsA("Attachment") and v:GetAttribute("RagdollAttachment") then
+                    v:Destroy()
+                elseif v:IsA("Motor6D") and not v.Enabled then
+                    v.Enabled = true
+                end
+            end
+        end
+
+        if tpWalkEnabled and hum and rootPart then
+            if hum.MoveDirection.Magnitude > 0 then
+                local velocityVector = hum.MoveDirection * math.clamp(tpWalkSpeedValue, 1, 1000)
+                rootPart.AssemblyLinearVelocity = Vector3.new(velocityVector.X, rootPart.AssemblyLinearVelocity.Y, velocityVector.Z)
+            else
+                rootPart.AssemblyLinearVelocity = Vector3.new(0, rootPart.AssemblyLinearVelocity.Y, 0)
+            end
+        end
+
+        if flyEnabled and rootPart then
+            if not normalFlyGyro or not normalFlyGyro.Parent then
+                normalFlyGyro = Instance.new("BodyGyro")
+                normalFlyGyro.P = 9e4
+                normalFlyGyro.MaxTorque = Vector3.new(9e4, 9e4, 9e4)
+                normalFlyGyro.Parent = rootPart
+            end
+            if not normalFlyVel or not normalFlyVel.Parent then
+                normalFlyVel = Instance.new("BodyVelocity")
+                normalFlyVel.Velocity = Vector3.zero
+                normalFlyVel.MaxForce = Vector3.new(9e4, 9e4, 9e4)
+                normalFlyVel.Parent = rootPart
+            end
+            
+            local cam = Workspace.CurrentCamera
+            local moveDir = Vector3.zero
+            local isTyping = UserInputService:GetFocusedTextBox() ~= nil
+            
+            if not isTyping then
+                pcall(function()
+                    local pm = require(LocalPlayer.PlayerScripts.PlayerModule)
+                    local moveVector = pm:GetControls():GetMoveVector()
+                    if moveVector.Magnitude > 0 then
+                        moveDir = (cam.CFrame.RightVector * moveVector.X) - (cam.CFrame.LookVector * moveVector.Z)
+                    end
+                end)
+                
+                if moveDir == Vector3.zero then
+                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
+                end
+            end
+            
+            normalFlyGyro.CFrame = cam.CFrame
+            normalFlyVel.Velocity = moveDir * math.clamp(flySpeedValue, 1, 1000)
+            if hum then hum.PlatformStand = true end
+        else
+            if normalFlyGyro then normalFlyGyro:Destroy(); normalFlyGyro = nil end
+            if normalFlyVel then normalFlyVel:Destroy(); normalFlyVel = nil end
+            if not flyEnabled and hum and hum.PlatformStand and not antiRagdollEnabled then
+                hum.PlatformStand = false
+                pcall(function() hum:ChangeState(Enum.HumanoidStateType.Landed) end)
+            end
+        end
+    end
+
+    if eggEspEnabled then
+        local cam = Workspace.CurrentCamera
+        if cam then
+            local camPos = cam.CFrame.Position
+            local seen = {}
+
+            for _, eggData in ipairs(cachedEggs) do
+                local worldPos = eggData.pos
+                local dist = (camPos - worldPos).Magnitude
+
+                if dist > espRenderDistance then
+                    continue
+                end
+
+                local screenPos, onScreen = cam:WorldToViewportPoint(worldPos)
+                if not onScreen then continue end
+                
+                local uid = eggData.uid
+                seen[uid] = true
+
+                local adornee = eggData.nest or eggData.part
+                
+                local areaColor, rarityColor, rarityText
+                local predictedPet = eggData.cat
+                local sz = eggData.size or Vector3.zero
+                local szMag = math.max(sz.X, sz.Y, sz.Z)
+                local sizeStr = "Size: " .. string.format("%.1f", szMag)
+
+                if not eggData.isPhysical then
+                    local loot = getLootInfo(eggData.area)
+                    areaColor = loot and loot.areaColor or Color3.fromRGB(255, 220, 60)
+                    rarityColor = loot and loot.rarityColor or Color3.fromRGB(200, 200, 200)
+                    rarityText = loot and loot.rarity or "Unknown"
+                else
+                    areaColor = Color3.fromRGB(255, 100, 100)
+                    rarityColor = Color3.fromRGB(255, 255, 255)
+                    rarityText = "Dropped"
+                end
+                
+                local set = getOrCreate(uid)
+                if adornee then getOrCreateHighlight(uid, adornee, areaColor) end
+
+                if set.name then
+                    local scale = math.clamp(1 - (dist / espRenderDistance), 0.5, 1)
+                    local titleSize = math.floor(28 * scale)
+                    local detailSize = math.floor(20 * scale)
+                    local spacing = math.floor(24 * scale)
+
+                    local centerX = screenPos.X
+                    local topY = screenPos.Y - (40 * scale)
+
+                    set.rarity.Text = "[" .. rarityText .. "]"
+                    set.rarity.Size = detailSize
+                    set.rarity.Color = rarityColor
+                    set.rarity.Position = Vector2.new(centerX, topY - spacing)
+                    set.rarity.Visible = true
+
+                    set.name.Text = predictedPet
+                    set.name.Size = titleSize
+                    set.name.Color = areaColor
+                    set.name.Position = Vector2.new(centerX, topY)
+                    set.name.Visible = true
+
+                    set.dist.Text = string.format("%.0f studs | %s", dist, sizeStr)
+                    set.dist.Size = detailSize
+                    set.dist.Color = Color3.fromRGB(220, 220, 220)
+                    set.dist.Position = Vector2.new(centerX, topY + spacing)
+                    set.dist.Visible = true
+                end
+            end
+            
+            for uid, _ in pairs(eggDrawings) do
+                if not seen[uid] then 
+                    hideSet(uid) 
+                end
+            end
+        end
+    else
+        for uid, _ in pairs(eggDrawings) do
+            hideSet(uid) 
+        end
+    end
+end)
+
+-- Reliable Auto Farm Loop (Smooth Swoop -> Fast Grab -> Swoop Back)
+task.spawn(function()
+    local isFarmingEgg = false
+    
+    while task.wait(0.2) do
+        local char = LocalPlayer.Character
+        local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        
+        if eggAutoFarmEnabled and rootPart and not isFarmingEgg then
+            local validEggs = {}
+            
+            for _, r in ipairs(cachedEggs) do
+                local areaStr = tostring(r.area or "")
+                if string.lower(areaStr) == string.lower(targetTierName) then
+                    validEggs[#validEggs+1] = r
+                end
+            end
+            
+            if #validEggs > 0 then
+                if farmHeaviestInTier then
+                    table.sort(validEggs, function(a, b)
+                        local szA = a.size or Vector3.zero
+                        local szB = b.size or Vector3.zero
+                        local volA = szA.X * szA.Y * szA.Z
+                        local volB = szB.X * szB.Y * szB.Z
+                        if volA ~= volB then
+                            return volA > volB
+                        end
+                        return a.pos.Z < b.pos.Z
+                    end)
+                else
+                    table.sort(validEggs, function(a, b)
+                        return a.pos.Z < b.pos.Z
+                    end)
+                end
+                
+                local bestEgg = validEggs[1]
+                if bestEgg then
+                    isFarmingEgg = true
+                    local originalPos = rootPart.CFrame
+                    
+                    if hum then hum.PlatformStand = true end
+                    local flightSpeed = autoFarmSpeedValue
+                    
+                    local targetPos = bestEgg.cf + Vector3.new(0, 1.2, 0)
+                    local distToEgg = (rootPart.Position - targetPos.Position).Magnitude
+                    local timeToEgg = math.max(distToEgg / flightSpeed, 0.02)
+                    
+                    local antiGrav = Instance.new("BodyVelocity")
+                    antiGrav.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                    antiGrav.Velocity = Vector3.zero
+                    antiGrav.Parent = rootPart
+                    
+                    -- 1. Tween directly to target egg
+                    local tweenTo = TweenService:Create(rootPart, TweenInfo.new(timeToEgg, Enum.EasingStyle.Linear), { CFrame = targetPos })
+                    tweenTo:Play()
+                    task.wait(timeToEgg)
+                    
+                    if rootPart then 
+                        rootPart.AssemblyLinearVelocity = Vector3.zero 
+                    end
+                    
+                    -- REQUIRED PAUSE to let server recognize our position (prevents anti-cheat kicks)
+                    task.wait(0.15)
+                    
+                    -- 2. At egg: Fire prompt normally
+                    local targetPrompt = bestEgg.prompt
+                    if not targetPrompt or not targetPrompt.Parent then
+                        local minD = 3.5
+                        for _, p in ipairs(Workspace:GetDescendants()) do
+                            if p:IsA("ProximityPrompt") and p.Enabled and p.Parent and p.Parent:IsA("BasePart") then
+                                local d = (p.Parent.Position - bestEgg.pos).Magnitude
+                                if d < minD then
+                                    minD = d
+                                    targetPrompt = p
+                                end
+                            end
+                        end
+                    end
+                    
+                    if targetPrompt and targetPrompt.Parent and targetPrompt.Enabled then
+                        pcall(function() fireproximityprompt(targetPrompt, 0) end)
+                        task.wait(0.1)
+                        pcall(function() fireproximityprompt(targetPrompt, 1) end)
+                    end
+                    
+                    if not bestEgg.isPhysical then
+                        task.spawn(function()
+                            if Network and NM and NM.Eggs and NM.Eggs.BUY then
+                                pcall(function() Network.Invoke(NM.Eggs.BUY, bestEgg.uid, 1) end)
+                            end
+                            if Network and Network.Invoke then
+                                pcall(function() Network.Invoke("BUY", bestEgg.uid, 1) end)
+                                pcall(function() Network.Invoke("REQUEST_BUY", bestEgg.uid, 1) end)
+                            end
+                        end)
+                    end
+                    task.wait(0.1)
+                    
+                    lastHeldEgg = {
+                        name = bestEgg.cat,
+                        size = bestEgg.size,
+                        area = bestEgg.area,
+                        time = os.clock()
+                    }
+                    
+                    -- 3. Tween straight back fast
+                    if rootPart then
+                        local distBack = (rootPart.Position - originalPos.Position).Magnitude
+                        local timeBack = math.max(distBack / flightSpeed, 0.02)
+                        local tweenBack = TweenService:Create(rootPart, TweenInfo.new(timeBack, Enum.EasingStyle.Linear), { CFrame = originalPos })
+                        tweenBack:Play()
+                        task.wait(timeBack)
+                    end
+                    
+                    if antiGrav then antiGrav:Destroy() end
+                    
+                    if rootPart then
+                        rootPart.AssemblyLinearVelocity = Vector3.zero
+                        rootPart.AssemblyAngularVelocity = Vector3.zero
+                    end
+                    
+                    if hum and not flyEnabled and not antiRagdollEnabled then
+                        hum.PlatformStand = false
+                        pcall(function() hum:ChangeState(Enum.HumanoidStateType.Landed) end)
+                    end
+                    
+                    isFarmingEgg = false
+                    task.wait(0.04)
+                end
+            end
+        end
+    end
+end)
+
+-- Reliable Auto Rewards Loop
+task.spawn(function()
+    local lastHatch, lastEquip, lastClaim = 0, 0, 0
+    while task.wait(1) do
+        local now = os.clock()
+        local net = ReplicatedStorage:FindFirstChild("Packages") and ReplicatedStorage.Packages:FindFirstChild("Networking")
+        
+        if autoHatchEnabled and (now - lastHatch) >= 2 then
+            lastHatch = now
+            
+            -- Fallback 1: Direct UI Button Clicking (Bypasses all remote protections)
+            pcall(function()
+                if getconnections then
+                    for _, gui in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
+                        if (gui:IsA("TextButton") or gui:IsA("ImageButton")) and gui.Visible then
+                            local text = gui:IsA("TextButton") and gui.Text or ""
+                            if text == "" then
+                                local tl = gui:FindFirstChildOfClass("TextLabel")
+                                if tl then text = tl.Text end
+                            end
+                            if text == "Open" or text == "Grow All" then
+                                for _, conn in pairs(getconnections(gui.MouseButton1Click)) do
+                                    conn:Fire()
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+
+            -- Method 2: Modern Packages.Networking (Removed Growth Checks)
+            pcall(function()
+                if net and net:FindFirstChild("RF/EggWorld/AskLiveSnapshot") then
+                    local snap = net["RF/EggWorld/AskLiveSnapshot"]:InvokeServer()
+                    if type(snap) == "table" then
+                        for _, plot in pairs(snap) do
+                            if plot.OwnerUserId == LocalPlayer.UserId then
+                                for uid, egg in pairs(plot.Records or {}) do
+                                    if egg.Placement then
+                                        task.spawn(function()
+                                            if net:FindFirstChild("RF/EggWorld/AskHatch") then
+                                                local ok = net["RF/EggWorld/AskHatch"]:InvokeServer(uid)
+                                                if ok and net:FindFirstChild("RF/EggWorld/AskFinishHatch") then
+                                                    task.wait(0.2)
+                                                    net["RF/EggWorld/AskFinishHatch"]:InvokeServer(uid)
+                                                end
+                                            end
+                                        end)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+
+            -- Method 3: Legacy EggCmds (Removed IsLocalEggReady checks)
+            pcall(function()
+                if EggCmds and EggCmds.GetOwnerRuntimeRecords then
+                    local ok, recs = pcall(function() return EggCmds.GetOwnerRuntimeRecords(LocalPlayer.UserId) end)
+                    if ok and type(recs) == "table" then
+                        for uid, rec in pairs(recs) do
+                            if rec.Placement ~= nil then
+                                task.spawn(function()
+                                    pcall(function()
+                                        local st = EggCmds.RequestHatchEgg(uid)
+                                        if st then
+                                            task.wait(0.2)
+                                            EggCmds.RequestCompleteHatchEgg(uid)
+                                        end
+                                    end)
+                                end)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+        
+        if autoEquipBestEnabled and (now - lastEquip) >= 3 then
+            lastEquip = now
+            pcall(function()
+                if net and net:FindFirstChild("RF/Haul/WearBest") then
+                    net["RF/Haul/WearBest"]:InvokeServer()
+                end
+                if Network and NM and NM.Backpack and NM.Backpack.EQUIP_BEST then
+                    Network.Invoke(NM.Backpack.EQUIP_BEST)
+                elseif Network and Network.Invoke then
+                    Network.Invoke("EQUIP_BEST")
+                    Network.Invoke("WEAR_BEST")
+                end
+            end)
+        end
+        
+        if autoClaimEnabled and (now - lastClaim) >= 5 then
+            lastClaim = now
+            
+            -- Fallback 1: Direct UI Button Clicking for Index & Gifts
+            pcall(function()
+                if getconnections then
+                    for _, gui in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
+                        if (gui:IsA("TextButton") or gui:IsA("ImageButton")) and gui.Visible then
+                            local text = gui:IsA("TextButton") and gui.Text or ""
+                            if text == "" then
+                                local tl = gui:FindFirstChildOfClass("TextLabel")
+                                if tl then text = tl.Text end
+                            end
+                            local lowerText = string.lower(text)
+                            if string.find(lowerText, "claim all") or string.find(lowerText, "claim!") or lowerText == "claim" then
+                                for _, conn in pairs(getconnections(gui.MouseButton1Click)) do
+                                    conn:Fire()
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+
+            -- Fallback 2: Physical Magnet for Pen Money Drops
+            pcall(function()
+                local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    for _, obj in ipairs(Workspace:GetDescendants()) do
+                        if obj:IsA("BasePart") and not obj.Anchored and obj:FindFirstChild("TouchInterest") and not obj.Parent:FindFirstChild("Humanoid") then
+                            if firetouchinterest then
+                                firetouchinterest(root, obj, 0)
+                                firetouchinterest(root, obj, 1)
+                            else
+                                obj.CFrame = root.CFrame
+                            end
+                        end
+                    end
+                end
+            end)
+
+            pcall(function()
+                if net and net:FindFirstChild("RF/AwayEarnings/PendingCheck") then
+                    local pending = net["RF/AwayEarnings/PendingCheck"]:InvokeServer()
+                    if pending and net:FindFirstChild("RF/AwayEarnings/AskCollect") then
+                        net["RF/AwayEarnings/AskCollect"]:InvokeServer()
+                    end
+                end
+                if Network and NM then
+                    if NM.Index and NM.Index.REQUEST_CLAIM_ALL then Network.Invoke(NM.Index.REQUEST_CLAIM_ALL) end
+                    if NM.FreeGifts and NM.FreeGifts.REQUEST_CLAIM then Network.Invoke(NM.FreeGifts.REQUEST_CLAIM) end
+                    if NM.OfflineAssets and NM.OfflineAssets.REQUEST_REDEEM then Network.Invoke(NM.OfflineAssets.REQUEST_REDEEM) end
+                    if NM.GroupReward and NM.GroupReward.CLAIM_REWARD then Network.Invoke(NM.GroupReward.CLAIM_REWARD) end
+                elseif Network and Network.Invoke then
+                    Network.Invoke("REQUEST_CLAIM_ALL")
+                    Network.Invoke("REQUEST_CLAIM")
+                    Network.Invoke("REQUEST_REDEEM")
+                    Network.Invoke("CLAIM_REWARD")
+                end
+            end)
+        end
+    end
+end)
+
+-- ============= ANTI-TRAP & AUTO-RUN =============
+local function setupAntiTrap()
+    local function checkAndDestroy(obj)
+        pcall(function()
+            if obj:IsA("Model") or obj:IsA("BasePart") then
+                local name = string.lower(obj.Name)
+                if string.find(name, "trap") or string.find(name, "spike") or string.find(name, "snare") then
+                    obj:Destroy()
+                end
+            end
+        end)
+    end
+
+    -- 1. Sweep existing traps instantly
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        checkAndDestroy(obj)
+    end
+
+    -- 2. Destroy new traps the millisecond they spawn
+    Workspace.DescendantAdded:Connect(function(obj)
+        if antiTrapEnabled then
+            checkAndDestroy(obj)
+        end
+    end)
+
+    task.spawn(function()
+        while task.wait(0.1) do
+            if antiTrapEnabled then
+                pcall(function()
+                    local char = LocalPlayer.Character
+                    if char and char:GetAttribute("IsTrapped") then
+                        char:SetAttribute("IsTrapped", nil)
+                        local hum = char:FindFirstChildOfClass("Humanoid")
+                        if hum then hum.PlatformStand = false end
+                    end
+                end)
+            end
+        end
+    end)
+end
+setupAntiTrap()
+
+task.spawn(function()
+    while true do
+        if autoRunEnabled then
+            pcall(function()
+                if TreadmillsNet and TreadmillsNet.REQUEST_SET_SLOW_TOGGLE_ENABLED then
+                    Network.Invoke(TreadmillsNet.REQUEST_SET_SLOW_TOGGLE_ENABLED, false)
+                elseif Network and Network.Invoke then
+                    Network.Invoke("REQUEST_SET_SLOW_TOGGLE_ENABLED", false)
+                end
+            end)
+        end
+        task.wait(10)
+    end
+end)
+
+-- ============= UPGRADE LOOP =============
+local lastPenUpgrade = 0
+local lastTreadmillUpgrade = 0
+local lastTrailBuy = 0
+
+local function tryUpgradePen(data)
+    local nextLevel = data.BaseUpgradeLevel + 1
+    local nextConfig = Bases and Bases.BASES and Bases.BASES[nextLevel]
+    if nextConfig == nil then return end
+    if data.Money >= nextConfig.Cost then
+        pcall(function()
+            if PlotsNet and PlotsNet.REQUEST_BASE_UPGRADE then
+                Network.Fire(PlotsNet.REQUEST_BASE_UPGRADE)
+            elseif Network and Network.Fire then
+                Network.Fire("REQUEST_BASE_UPGRADE")
+            end
+        end)
+    end
+end
+
+local function tryUpgradeTreadmill(data)
+    local nextLevel = data.TreadmillUpgradeLevel + 1
+    local nextConfig = Treadmills and Treadmills.GetByUpgradeLevel and Treadmills.GetByUpgradeLevel(nextLevel)
+    if nextConfig == nil then return end
+    if data.Money >= nextConfig.Price then
+        pcall(function()
+            if TreadmillsNet and TreadmillsNet.REQUEST_UPGRADE then
+                Network.Invoke(TreadmillsNet.REQUEST_UPGRADE, nextConfig._id)
+            elseif Network and Network.Invoke then
+                Network.Invoke("REQUEST_UPGRADE", nextConfig._id)
+            end
+        end)
+    end
+end
+
+local function tryBuyTrails(data)
+    if not Trails or not Trails.Directory then return end
+    local affordable = {}
+    for name, cfg in pairs(Trails.Directory) do
+        if cfg.DisplayInShop and not data.TrailInventory[name] then
+            if data.Money >= cfg.Price then
+                table.insert(affordable, {name = name, price = cfg.Price})
+            end
+        end
+    end
+    table.sort(affordable, function(a, b) return a.price < b.price end)
+
+    if #affordable > 0 then
+        local target = affordable[#affordable]
+        pcall(function()
+            if TrailsNet and TrailsNet.REQUEST_PURCHASE then
+                Network.Invoke(TrailsNet.REQUEST_PURCHASE, target.name)
+            elseif Network and Network.Invoke then
+                Network.Invoke("REQUEST_PURCHASE", target.name)
+            end
+        end)
+    end
+end
+
+task.spawn(function()
+    while true do
+        if autoPenEnabled or autoTreadmillEnabled or autoBuyTrailsEnabled then
+            local ok, data = pcall(function() return Save and Save.Get and Save.Get() end)
+            if ok and data then
+                local now = os.clock()
+
+                if autoPenEnabled and (now - lastPenUpgrade > 1.5) then
+                    tryUpgradePen(data)
+                    lastPenUpgrade = now
+                end
+
+                if autoTreadmillEnabled and (now - lastTreadmillUpgrade > 1.5) then
+                    tryUpgradeTreadmill(data)
+                    lastTreadmillUpgrade = now
+                end
+
+                if autoBuyTrailsEnabled and (now - lastTrailBuy > 3) then
+                    tryBuyTrails(data)
+                    lastTrailBuy = now
+                end
+            end
+        end
+        task.wait(1.5)
+    end
+end)
+
+Library:Notify({ Title = "Toolbox Hub", Content = "Script fully restored with touch circles!", Duration = 5 })
