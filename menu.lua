@@ -26,8 +26,8 @@
 	local RED = Color3.fromRGB(17, 255, 0)
 	local BLACK = Color3.fromRGB(31, 31, 31)
 	local WHITE = Color3.fromRGB(255, 255, 255)
-	local DIM = Color3.fromRGB(85, 85, 85)
-	local LINE = Color3.fromRGB(85, 85, 85)
+	local DIM = Color3.fromRGB(17, 17, 17)
+	local LINE = Color3.fromRGB(75, 75, 75)
 
 	local S = {
 		AimbotEnabled = false,
