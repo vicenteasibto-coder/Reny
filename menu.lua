@@ -787,9 +787,8 @@
 
 	local fovCircle
 	
-	
-	
-	do
+	-- ===== SPLIT BLOCKS SA SARILING FUNCTIONS =====
+	local buildAimbot = function()
 		local AimTab = mkSubFrame("Aimbot")
 		local L, R, colW = mkTwoCols(AimTab)
 		local yL = 0
@@ -993,9 +992,9 @@
 				if mousemoverel then mousemoverel(dx * speed, dy * speed) end
 			end
 		end))
-	end
+	end -- END buildAimbot
 	local saFov
-		do
+		local buildSilentAim = function()
 			local SATab = mkSubFrame("SilentAim")
 			local L, R, colW = mkTwoCols(SATab)
 			local saState = {
@@ -1087,7 +1086,7 @@
 				end
 			end))
 		end
-	do
+	local buildTrigger = function()
 		local TrigTab = mkSubFrame("Trigger")
 		local L, R, colW = mkTwoCols(TrigTab)
 		local yL = 0
@@ -1211,7 +1210,7 @@
 
 	local bhFovCircle
 
-	do
+	local buildBigHead = function()
 		local BHTab = mkSubFrame("BigHead")
 		local L, R, colW = mkTwoCols(BHTab)
 		local BH = { Enabled = false, Size = 1, Transparency = 0,
@@ -1406,7 +1405,7 @@
 
 	local activeTracers = {}
 
-	do
+	local buildESP = function()
 		local ESPTab = mkSubFrame("ESP")
 		local L, R, colW = mkTwoCols(ESPTab)
 		local yL = 0
@@ -1578,7 +1577,7 @@
 		trackConn(Players.PlayerRemoving:Connect(function(pl) removeESP(pl.UserId); if activeTracers[pl] then pcall(function() activeTracers[pl]:Remove() end) activeTracers[pl]=nil end end))
 	end
 	
-	do
+	local buildPlayerList = function()
 		local PLTab = mkSubFrame("PlayerList")
 		local PL_W = CON_W - PAD * 2
 		local PLp = fr(PLTab, UDim2.fromOffset(PL_W, WIN_H - PATH_H - PAD * 2), UDim2.fromOffset(PAD, PAD), BLACK)
@@ -1796,7 +1795,7 @@
 		task.spawn(refreshPLList)
 	end
 
-	do
+	local buildWhitelist = function()
 		-- Ilagay natin ang GangIDs sa itaas ng do block para accessible sa buong sakop nito
 		local GangIDs = {
 			{name = "POLICE", id = 1012070570},
@@ -2078,7 +2077,7 @@
 	local flyBody = nil
 	local clearTrack, toggleTrack
 	
-	do
+	local buildMain = function()
 		local MainTab = mkSubFrame("Main")
 		local L, R, colW = mkTwoCols(MainTab)
 		local flyAllowed = false
@@ -2524,7 +2523,7 @@
 		end))
 	end
 
-	do
+	local buildMovement = function()
 		local MovTab = mkSubFrame("Movement")
 		local L, R, colW = mkTwoCols(MovTab)
 		local yL = 0
@@ -2572,7 +2571,7 @@
 		yR = yR + 49
 	end
 
-	do
+	local buildTeleport = function()
 		local TPTab = mkSubFrame("Teleport")
 		local TP_W = CON_W - PAD * 2
 		local TPPanel = fr(TPTab, UDim2.fromOffset(TP_W, WIN_H - PATH_H - PAD * 2), UDim2.fromOffset(PAD, PAD), BLACK)
@@ -2774,7 +2773,7 @@
 	local Lighting = game:GetService("Lighting")
 	local CAM = workspace.CurrentCamera
 
-	do
+	local buildSky = function()
 		local WorldTab = mkSubFrame("Sky")
 
 		local scrollFrame = Instance.new("ScrollingFrame", WorldTab)
@@ -3246,7 +3245,7 @@
 
 	
 	
-	do
+	local buildGames = function()
 		local GamesTab = mkSubFrame("Games")
 		local gW = CON_W - PAD * 2
 		local gScroll = mkScrollContent(GamesTab, 800)
@@ -3470,7 +3469,7 @@
 		gScroll.CanvasSize = UDim2.fromOffset(0, yOff + 20)
 	end
 	
-	do
+	local buildGunMode = function()
 		local GMTab = mkSubFrame("GunMode")
 		local gmW = CON_W - PAD * 2
 		local GUNMODE_WL = { ["Ren99Swag"] = true }
@@ -3894,7 +3893,7 @@
 
 	
 
-	do
+	local buildShop = function()
 		local ShopTab = mkSubFrame("Shop")
 
 		local mainScrolling = Instance.new("ScrollingFrame", ShopTab)
@@ -5424,7 +5423,7 @@
 	hamS.Thickness = 1
 	hamS.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-	do
+	local buildSettings = function()
 		local _hDrag, _hStart, _hOrigin = false, nil, nil
 
 		HamBtn.InputBegan:Connect(function(i)
@@ -5475,5 +5474,23 @@
 		}):Play()
 	end)
 
+	buildAimbot()
+	buildSilentAim()
+	buildTrigger()
+	buildBigHead()
+	buildESP()
+	buildPlayerList()
+	buildWhitelist()
+	buildMain()
+	buildMovement()
+	buildTeleport()
+	buildSky()
+	buildGames()
+	buildGunMode()
+	buildShop()
+	buildSettings()
+
 	switchMainTab("Combat")
 	print(" WILD MENU — coded by @ https://porn.x — " .. LP.Name .. " (" .. LP.UserId .. ")")
+
+	
